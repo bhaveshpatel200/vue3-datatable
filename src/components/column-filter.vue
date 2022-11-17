@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bh-absolute bh-bg-white bh-shadow-md bh-rounded-md bh-top-full bh-right-0 bh-w-32 bh-z-10 bh-mt-1"
+    class="bh-filter-menu bh-absolute bh-bg-white bh-shadow-md bh-rounded-md bh-top-full bh-right-0 bh-w-32 bh-z-10 bh-mt-1"
   >
     <div class="bh-text-[13px] bh-font-normal" @click.stop="close">
       <button
@@ -173,10 +173,10 @@ const select = (condition: any) => {
 };
 </script>
 <style scoped>
-button {
-  @apply bh-w-full bh-px-4 bh-py-1.5 hover:bh-bg-gray-100 hover:bh-font-bold bh-text-left;
+.bh-filter-menu button {
+  @apply bh-flex bh-w-full bh-px-4 bh-py-1.5 hover:bh-bg-gray-100 hover:bh-font-bold bh-text-left;
 }
-button.active {
+.bh-filter-menu button.active {
   @apply bh-font-bold bh-bg-gray-100;
 }
 </style>

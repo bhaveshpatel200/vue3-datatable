@@ -93,6 +93,7 @@ bower install @bhplugin/vue3-datatable --save
 | loading              | boolean                 | false                               | enable loader                       |
 | hasCheckbox          | boolean                 | false                               | enable checkbox                     |
 | search               | string                  | ""                                  | enable global search                |
+| page                 | number                  | 1                                   | current page                        |
 | pageSize             | number                  | 10                                  | number of rows per page             |
 | pageSizeOptions      | array<number>           | [10, 20, 30, 50, 100]               | pagesize options                    |
 | showPageSize         | boolean                 | true                                | enable pagesize options             |
@@ -100,7 +101,7 @@ bower install @bhplugin/vue3-datatable --save
 | cellClass            | array<string>, function | ""                                  | custom cell class                   |
 | sortable             | boolean                 | true                                | enable sorting                      |
 | sortColumn           | string                  | "id"                                | name of sort column                 |
-| sortDirection        | string                  | "desc"                              | sort direction (asc or desc)        |
+| sortDirection        | string                  | "asc"                               | sort direction (asc or desc)        |
 | columnFilter         | boolean                 | false                               | enable individual column filter     |
 | pagination           | boolean                 | true                                | enable pagination                   |
 | showNumbers          | boolean                 | true                                | enable numbers pagination           |
@@ -146,14 +147,15 @@ bower install @bhplugin/vue3-datatable --save
 
 ## Methods
 
-| Name                 | Description                                                               |
-| -------------------- | ------------------------------------------------------------------------- |
-| getSelectedRows      | will returns all selected rows                                            |
-| getColumnFilters     | will return all column filters                                            |
-| clearSelectedRows    | will unselect all selected rows                                           |
-| selectRow(index)     | will select row with the given index (non-existent row will be ignored)   |
-| unselectRow(index)   | will unselect row with the given index (non-existent row will be ignored) |
-| isRowSelected(index) | will return true if the row with given index is selected                  |
+| Name                 | Description                                                                  |
+| -------------------- | ---------------------------------------------------------------------------- |
+| reset                | will reset all options like selected rows, filter, search, currennt page etc |
+| getSelectedRows      | will returns all selected rows                                               |
+| getColumnFilters     | will return all column filters                                               |
+| clearSelectedRows    | will unselect all selected rows                                              |
+| selectRow(index)     | will select row with the given index (non-existent row will be ignored)      |
+| unselectRow(index)   | will unselect row with the given index (non-existent row will be ignored)    |
+| isRowSelected(index) | will return true if the row with given index is selected                     |
 
 ## License
 

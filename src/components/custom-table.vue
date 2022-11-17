@@ -3,7 +3,6 @@
     class="bh-antialiased bh-relative bh-font-nunito bh-text-black bh-text-sm bh-font-normal"
   >
     <div
-      ref="parentTable"
       class="bh-table-responsive"
       :class="{ 'bh-min-h-[300px]': curentLoader }"
     >
@@ -412,6 +411,7 @@ interface Props {
   hasCheckbox?: boolean;
   search?: string;
   columnChooser?: boolean;
+  page?: number; // default: 1
   pageSize?: number; // default: 10
   pageSizeOptions?: Array<number>; // default: [10, 20, 30, 50, 100]
   showPageSize?: boolean;
@@ -444,6 +444,7 @@ const props = withDefaults(defineProps<Props>(), {
   hasCheckbox: false,
   search: "",
   columnChooser: false,
+  page: 1,
   pageSize: 10,
   pageSizeOptions: () => [10, 20, 30, 50, 100],
   showPageSize: true,
@@ -481,7 +482,7 @@ for (const item of props.columns || []) {
 }
 
 const filterItems: Ref<Array<any>> = ref([]);
-const currentPage: Ref<number> = ref(1);
+const currentPage = ref(props.page);
 const curentPageSize = ref(props.pageSize);
 const currentSortColumn = ref(props.sortColumn);
 const currentSortDirection = ref(props.sortDirection);
@@ -489,10 +490,10 @@ const filterRowCount = ref(props.totalRows);
 const selected: Ref<Array<any>> = ref([]);
 const selectedAll: any = ref(null);
 const curentLoader = ref(props.loading);
+const curentSearch = ref(props.search);
+const oldColumns = props.columns;
 
-const position = ref({ left: 0, top: 0 });
 const isOpenFilter: any = ref(null);
-const parentTable: any = ref(null);
 
 onMounted(() => {
   filterRows();
@@ -506,6 +507,9 @@ const emit = defineEmits([
   "filterChange",
 ]);
 defineExpose({
+  reset() {
+    reset();
+  },
   getSelectedRows() {
     return getSelectedRows();
   },
@@ -730,7 +734,7 @@ const filterRows = () => {
     }
   });
 
-  if (props.search && rows.length) {
+  if (curentSearch.value && rows.length) {
     let final: Array<any> = [];
 
     const keys = (props.columns || [])
@@ -745,7 +749,7 @@ const filterRows = () => {
           cellValue(rows[j], keys[i])
             ?.toString()
             .toLowerCase()
-            .includes(props.search.toLowerCase())
+            .includes(curentSearch.value.toLowerCase())
         ) {
           final.push(rows[j]);
           break;
@@ -943,9 +947,15 @@ const changeSearch = () => {
   // } else {
   // currentPage.value = 1;
   // }
-  emit("searchChange", props.search);
+  emit("searchChange", curentSearch.value);
 };
 watch(() => props.search, changeSearch);
+watch(
+  () => props.search,
+  () => {
+    curentSearch.value = props.search;
+  }
+);
 
 const cellValue = (item: object, field: string) => {
   if (field.includes(".")) {
@@ -984,6 +994,17 @@ const dateFormat = (date: any) => {
 };
 
 // methods
+const reset = () => {
+  props.columns?.forEach((d, i) => {
+    d = oldColumns[i];
+  });
+  curentSearch.value = "";
+  currentPage.value = 1;
+  currentSortColumn.value = "id";
+  currentSortDirection.value = "asc";
+  selectAll(false);
+  filterRows();
+};
 const getSelectedRows = () => {
   const rows = filterItems.value.filter((d, i) =>
     selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i)
