@@ -1,7 +1,6 @@
 <template>
   <div class="bh-p-10">
     <div class="bh-mb-2">
-      <button type="button" @click="checkMethod">Test</button>
       <input
         type="text"
         v-model="search"
@@ -16,16 +15,10 @@
       :totalRows="rows?.length"
       :hasCheckbox="true"
       :sortable="true"
-      :pageSize="2"
-      :pageSizeOptions="[2, 5, 10]"
+      :pageSize="5"
+      :pageSizeOptions="[5, 10]"
       :search="search"
       :columnFilter="true"
-      @sortChange="sortChange"
-      @searchChange="searchChange"
-      @pageChange="pageChange"
-      @pageSizeChange="pageSizeChange"
-      @rowSelect="rowSelect"
-      @filterChange="filterChange"
     >
       <template #id="data">
         <strong>#{{ data.value.id }}</strong>
@@ -318,32 +311,4 @@ const rows = ref([
     },
   },
 ]);
-
-const sortChange = (data) => {
-  console.log("sortChange :: ", data);
-};
-const searchChange = (data) => {
-  console.log("searchChange :: ", data);
-};
-const pageChange = (data) => {
-  console.log("pageChange :: ", data);
-};
-const pageSizeChange = (data) => {
-  console.log("pageSizeChange :: ", data);
-};
-const rowSelect = (data) => {
-  console.log("rowSelect :: ", data);
-};
-const filterChange = (data) => {
-  console.log("filterChange :: ", data);
-};
-
-const checkMethod = () => {
-  // console.log("getColumnFilters :: ", datatable.value.getColumnFilters());
-  // console.log("selectRow :: ", datatable.value.selectRow(5));
-  // console.log("unselectRow :: ", datatable.value.unselectRow(4));
-  // console.log("isRowSelected :: ", datatable.value.isRowSelected(1));
-  // console.log("clearSelectedRows :: ", datatable.value.clearSelectedRows());
-  // console.log("getSelectedRows :: ", datatable.value.getSelectedRows());
-};
 </script>

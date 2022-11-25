@@ -1,131 +1,25 @@
 <template>
   <div
-    class="bh-antialiased bh-relative bh-font-nunito bh-text-black bh-text-sm bh-font-normal"
+    class="bh-antialiased bh-relative bh-text-black bh-text-sm bh-font-normal"
   >
     <div
       class="bh-table-responsive"
       :class="{ 'bh-min-h-[300px]': curentLoader }"
+      :style="{ height: props.stickyHeader && props.height }"
     >
       <table :class="[props.skin]">
-        <thead>
-          <tr>
-            <th v-if="props.hasCheckbox" :key="'chkall'" class="bh-w-px">
-              <div class="bh-relative">
-                <input
-                  ref="selectedAll"
-                  type="checkbox"
-                  @click="selectAll($event.target.checked)"
-                />
-                <div>
-                  <icon-check class="check" />
-                  <icon-dash class="intermediate" />
-                </div>
-              </div>
-            </th>
-            <template v-for="col in columns">
-              <th
-                v-if="!col.hide"
-                :key="col.field"
-                class="bh-select-none"
-                :class="[props.sortable && col.sort ? 'bh-cursor-pointer' : '']"
-                :style="{
-                  width: col.width,
-                  'min-width': col.minWidth,
-                  'max-width': col.maxWidth,
-                }"
-              >
-                <div
-                  class="bh-flex bh-items-center"
-                  @click="props.sortable && col.sort && sortChange(col.field)"
-                >
-                  {{ col.title }}
-                  <span
-                    v-if="props.sortable && col.sort"
-                    class="bh-ml-3 bh-sort"
-                    :class="[currentSortColumn, currentSortDirection]"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
-                      <polygon
-                        points="3.11,6.25 10.89,6.25 7,1.75 "
-                        fill="currentColor"
-                        class="bh-text-black/20"
-                        :class="[
-                          currentSortColumn === col.field &&
-                          currentSortDirection === 'asc'
-                            ? '!bh-text-primary'
-                            : '',
-                        ]"
-                      ></polygon>
-                      <polygon
-                        points="7,12.25 10.89,7.75 3.11,7.75 "
-                        fill="currentColor"
-                        class="bh-text-black/20"
-                        :class="[
-                          currentSortColumn === col.field &&
-                          currentSortDirection === 'desc'
-                            ? '!bh-text-primary'
-                            : '',
-                        ]"
-                      ></polygon>
-                    </svg>
-                  </span>
-                </div>
-
-                <template v-if="props.columnFilter">
-                  <div v-if="col.filter" class="bh-filter bh-relative">
-                    <input
-                      v-if="col.type === 'string'"
-                      v-model.trim="col.value"
-                      type="text"
-                      class="form-control"
-                      @keyup="filterChange"
-                    />
-                    <input
-                      v-if="col.type === 'number'"
-                      v-model.number.trim="col.value"
-                      type="number"
-                      class="form-control"
-                      @keyup="filterChange"
-                    />
-                    <input
-                      v-else-if="col.type === 'date'"
-                      v-model="col.value"
-                      type="date"
-                      class="form-control"
-                      @change="filterChange"
-                    />
-                    <select
-                      v-else-if="col.type === 'bool'"
-                      v-model="col.value"
-                      class="form-control"
-                      @change="filterChange"
-                      @click="isOpenFilter = null"
-                    >
-                      <option :value="undefined">All</option>
-                      <option :value="true">True</option>
-                      <option :value="false">False</option>
-                    </select>
-
-                    <button
-                      v-if="col.type !== 'bool'"
-                      type="button"
-                      @click.stop="toggleFilterMenu(col)"
-                    >
-                      <icon-filter class="bh-w-4" />
-                    </button>
-
-                    <column-filter
-                      v-show="isOpenFilter === col.field"
-                      :column="col"
-                      :type="col.type"
-                      @close="isOpenFilter = null"
-                      @filterChange="filterChange"
-                    />
-                  </div>
-                </template>
-              </th>
-            </template>
-          </tr>
+        <thead :class="{ 'bh-sticky bh-top-0': props.stickyHeader }">
+          <column-header
+            :all="props"
+            :currentSortColumn="currentSortColumn"
+            :currentSortDirection="currentSortDirection"
+            :isOpenFilter="isOpenFilter"
+            :checkAll="selectedAll"
+            @selectAll="selectAll"
+            @sortChange="sortChange"
+            @filterChange="filterChange"
+            @toggleFilterMenu="toggleFilterMenu"
+          />
         </thead>
         <tbody>
           <template v-if="filterRowCount">
@@ -136,14 +30,17 @@
                 typeof props.rowClass === 'function'
                   ? rowClass(item)
                   : props.rowClass,
+                props.selectRowOnClick ? 'bh-cursor-pointer' : '',
               ]"
+              @click.prevent="rowClick(item, i)"
             >
               <td v-if="props.hasCheckbox">
-                <div class="bh-relative">
+                <div class="bh-checkbox">
                   <input
                     v-model="selected"
                     type="checkbox"
                     :value="item[uniqueKey] ? item[uniqueKey] : i"
+                    @click.stop
                   />
                   <div>
                     <icon-check class="check" />
@@ -180,6 +77,24 @@
             </td>
           </tr>
         </tbody>
+
+        <tfoot
+          v-if="props.cloneHeaderInFooter"
+          :class="{ 'bh-sticky bh-bottom-0': props.stickyHeader }"
+        >
+          <column-header
+            :all="props"
+            :currentSortColumn="currentSortColumn"
+            :currentSortDirection="currentSortDirection"
+            :isOpenFilter="isOpenFilter"
+            :isFooter="true"
+            :checkAll="selectedAll"
+            @selectAll="selectAll"
+            @sortChange="sortChange"
+            @filterChange="filterChange"
+            @toggleFilterMenu="toggleFilterMenu"
+          />
+        </tfoot>
       </table>
 
       <div
@@ -251,7 +166,7 @@
           <button
             v-if="props.showFirstPage"
             type="button"
-            class="bh-page-item"
+            class="bh-page-item first-page"
             :class="{ disabled: currentPage <= 1 }"
             @click="currentPage = 1"
           >
@@ -275,7 +190,7 @@
           </button>
           <button
             type="button"
-            class="bh-page-item"
+            class="bh-page-item previous-page"
             :class="{ disabled: currentPage <= 1 }"
             @click="previousPage"
           >
@@ -314,7 +229,7 @@
 
           <button
             type="button"
-            class="bh-page-item"
+            class="bh-page-item next-page"
             :class="{ disabled: currentPage >= maxPage }"
             @click="nextPage"
           >
@@ -337,7 +252,7 @@
           <button
             v-if="props.showLastPage"
             type="button"
-            class="bh-page-item"
+            class="bh-page-item last-page"
             :class="{ disabled: currentPage >= maxPage }"
             @click="currentPage = maxPage"
           >
@@ -366,20 +281,9 @@
 </template>
 
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUpdate,
-  onMounted,
-  Ref,
-  ref,
-  useSlots,
-  watch,
-} from "vue";
-import columnFilter from "./column-filter.vue";
+import { computed, onMounted, Ref, ref, useSlots, watch } from "vue";
+import columnHeader from "./column-header.vue";
 import iconCheck from "./icon-check.vue";
-import iconDash from "./icon-dash.vue";
-import iconFilter from "./icon-filter.vue";
 
 const slots = useSlots();
 
@@ -431,7 +335,12 @@ interface Props {
   nextArrow?: string;
   previousArrow?: string;
   paginationInfo?: string; // default: "Showing {0} to {1} of {2} entries"
-  noDataContent?: string; // default: "No data available"
+  noDataContent?: string; // default: "No data available",
+  stickyHeader?: boolean;
+  height?: string; // default 450px - only working with sticky headers
+  stickyFirstColumn?: boolean;
+  cloneHeaderInFooter?: boolean;
+  selectRowOnClick?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -466,6 +375,11 @@ const props = withDefaults(defineProps<Props>(), {
   previousArrow: "",
   paginationInfo: "Showing {0} to {1} of {2} entries",
   noDataContent: "No data available",
+  stickyHeader: false,
+  height: "500px",
+  stickyFirstColumn: false,
+  cloneHeaderInFooter: false,
+  selectRowOnClick: false,
 });
 
 // set default columns values
@@ -483,7 +397,9 @@ for (const item of props.columns || []) {
 
 const filterItems: Ref<Array<any>> = ref([]);
 const currentPage = ref(props.page);
-const curentPageSize = ref(props.pageSize);
+const curentPageSize = ref(
+  props.pagination ? props.pageSize : props.rows.length
+);
 const currentSortColumn = ref(props.sortColumn);
 const currentSortDirection = ref(props.sortDirection);
 const filterRowCount = ref(props.totalRows);
@@ -495,6 +411,11 @@ const oldColumns = props.columns;
 
 const isOpenFilter: any = ref(null);
 
+// row click
+const timer: any = ref(null);
+let clickCount: number = ref(0);
+const delay: number = ref(230);
+
 onMounted(() => {
   filterRows();
 });
@@ -505,6 +426,8 @@ const emit = defineEmits([
   "pageSizeChange",
   "rowSelect",
   "filterChange",
+  "rowClick",
+  "rowDBClick",
 ]);
 defineExpose({
   reset() {
@@ -519,13 +442,13 @@ defineExpose({
   clearSelectedRows() {
     return clearSelectedRows();
   },
-  selectRow(index) {
+  selectRow(index: number) {
     selectRow(index);
   },
-  unselectRow(index) {
+  unselectRow(index: number) {
     unselectRow(index);
   },
-  isRowSelected(index) {
+  isRowSelected(index: number) {
     return isRowSelected(index);
   },
 });
@@ -820,10 +743,14 @@ watch(
 );
 
 const toggleFilterMenu = (col: colDef) => {
-  if (isOpenFilter.value === col.field) {
-    isOpenFilter.value = null;
+  if (col) {
+    if (isOpenFilter.value === col.field) {
+      isOpenFilter.value = null;
+    } else {
+      isOpenFilter.value = col.field;
+    }
   } else {
-    isOpenFilter.value = col.field;
+    isOpenFilter.value = null;
   }
 };
 
@@ -899,17 +826,10 @@ const sortChange = (field: string) => {
 
 // checkboax
 const checkboxChange = (value: any) => {
-  if (selectedAll.value) {
-    selectedAll.value.indeterminate =
-      value.length &&
-      filterItems.value.length &&
-      value.length !== filterItems.value.length;
-
-    selectedAll.value.checked =
-      value.length &&
-      filterItems.value.length &&
-      value.length === filterItems.value.length;
-  }
+  selectedAll.value =
+    value.length &&
+    filterItems.value.length &&
+    value.length === filterItems.value.length;
 
   const rows = filterItems.value.filter((d, i) =>
     selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i)
@@ -993,6 +913,32 @@ const dateFormat = (date: any) => {
   return "";
 };
 
+//row click
+const rowClick = (item: any, index: number) => {
+  clickCount.value++;
+
+  if (clickCount.value === 1) {
+    timer.value = setTimeout(() => {
+      clickCount.value = 0;
+
+      if (props.selectRowOnClick) {
+        if (isRowSelected(index)) {
+          unselectRow(index);
+        } else {
+          selectRow(index);
+        }
+
+        checkboxChange(selected.value);
+      }
+      emit("rowClick", item);
+    }, delay.value);
+  } else if (clickCount.value === 2) {
+    clearTimeout(timer.value);
+    clickCount.value = 0;
+    emit("rowDBClick", item);
+  }
+};
+
 // methods
 const reset = () => {
   props.columns?.forEach((d, i) => {
@@ -1017,33 +963,23 @@ const getColumnFilters = () => {
 const clearSelectedRows = () => {
   selected.value = [];
 };
-const selectRow = (index) => {
-  const rows = filterItems.value.find((d, i) => i === index);
-  if (rows) {
-    const exist = selected.value.includes(
+const selectRow = (index: number) => {
+  if (!isRowSelected(index)) {
+    const rows = filterItems.value.find((d, i) => i === index);
+    selected.value.push(
       uniqueKey.value ? rows[uniqueKey.value as never] : index
     );
-    if (!exist) {
-      selected.value.push(
-        uniqueKey.value ? rows[uniqueKey.value as never] : index
-      );
-    }
   }
 };
-const unselectRow = (index) => {
-  const rows = filterItems.value.find((d, i) => i === index);
-  if (rows) {
-    const exist = selected.value.includes(
-      uniqueKey.value ? rows[uniqueKey.value as never] : index
+const unselectRow = (index: number) => {
+  if (isRowSelected(index)) {
+    const rows = filterItems.value.find((d, i) => i === index);
+    selected.value = selected.value.filter(
+      (d) => d !== (uniqueKey.value ? rows[uniqueKey.value as never] : index)
     );
-    if (exist) {
-      selected.value = selected.value.filter(
-        (d) => d !== (uniqueKey.value ? rows[uniqueKey.value as never] : index)
-      );
-    }
   }
 };
-const isRowSelected = (index) => {
+const isRowSelected = (index: number) => {
   const rows = filterItems.value.find((d, i) => i === index);
 
   if (rows) {

@@ -10,24 +10,35 @@
   .bh-table-responsive table {
     @apply bh-w-full bh-max-w-full !bh-border-collapse;
   }
-  .bh-table-responsive table thead tr {
-    @apply bh-bg-[#e0e6ed]/30 dark:bh-bg-[#1a2941];
+  .bh-table-responsive table thead tr,
+  .bh-table-responsive table tfoot tr {
+    @apply bh-bg-[#f6f7fa];
   }
   .bh-table-responsive table thead tr th,
+  .bh-table-responsive table tfoot tr th,
   .bh-table-responsive table tbody tr td {
     @apply bh-text-left bh-py-3 bh-px-4;
   }
-  .bh-table-responsive table thead tr th {
+  .bh-table-responsive table thead tr th,
+  .bh-table-responsive table tfoot tr th {
     @apply bh-font-bold bh-align-top;
   }
   .bh-table-responsive table tbody tr {
-    @apply bh-border-b bh-border-[#e0e6ed]/30 dark:bh-border-[#191e3a];
+    @apply bh-border-b bh-border-[#f6f7fa];
   }
   .bh-table-responsive table.table-striped tbody tr:nth-child(odd) {
-    @apply bh-bg-[#e0e6ed] dark:bh-bg-[#1a2941] bh-bg-opacity-[0.15];
+    @apply bh-bg-[#e0e6ed]  bh-bg-opacity-[0.15];
   }
   .bh-table-responsive table.table-hover tbody tr {
-    @apply hover:bh-bg-[#e0e6ed]/20 dark:hover:bh-bg-[#1a2941];
+    @apply hover:bh-bg-[#f9fafb];
+  }
+  .bh-table-responsive table.table-compact thead tr th,
+  .bh-table-responsive table.table-compact tbody tr td {
+    @apply bh-py-2 bh-px-3;
+  }
+  .bh-table-responsive table.table-bordered thead tr th,
+  .bh-table-responsive table.table-bordered tbody tr td {
+    @apply bh-border bh-border-[#f6f7fa];
   }
 
   .bh-pagination .bh-page-item {
