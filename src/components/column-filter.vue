@@ -1,6 +1,6 @@
 <template>
   <div
-    class="bh-filter-menu bh-absolute bh-bg-white bh-shadow-md bh-rounded-md bh-top-full bh-right-0 bh-w-32 bh-z-10 bh-mt-1"
+    class="bh-filter-menu bh-absolute bh-z-[1] bh-bg-white bh-shadow-md bh-rounded-md bh-top-full bh-right-0 bh-w-32 bh-mt-1"
   >
     <div class="bh-text-[13px] bh-font-normal" @click.stop="close">
       <button

@@ -13,12 +13,14 @@
       :rows="rows"
       :columns="cols"
       :totalRows="rows?.length"
-      :hasCheckbox="true"
       :sortable="true"
-      :pageSize="5"
+      :pageSize="10"
       :pageSizeOptions="[5, 10]"
       :search="search"
       :columnFilter="true"
+      :hasCheckbox="true"
+      :stickyFirstColumn="true"
+      :stickyHeader="true"
     >
       <template #id="data">
         <strong>#{{ data.value.id }}</strong>
@@ -43,28 +45,6 @@ const cols =
     { field: "date", title: "Date", type: "date" },
     { field: "active", title: "Active", type: "bool" },
     { field: "age", title: "Age", type: "number" },
-    {
-      field: "address.city",
-      title: "Address",
-      search: true,
-      cellRenderer: (item: any) => {
-        return (
-          item &&
-          item.address?.street +
-            ", " +
-            item.address?.suite +
-            "<br/><strong>" +
-            item.address?.city +
-            "</strong>" +
-            "<br/><strong>" +
-            "lat: " +
-            item.address?.geo?.lat +
-            "&nbsp;&nbsp; lng: " +
-            item.address?.geo?.lng +
-            "</strong>"
-        );
-      },
-    },
     { field: "company.name", title: "Company" },
   ]) || [];
 

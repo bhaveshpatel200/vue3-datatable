@@ -1,6 +1,13 @@
 <template>
   <tr key="hdrrow">
-    <th v-if="props.all.hasCheckbox" :key="'chkall'" class="bh-w-px">
+    <th
+      v-if="props.all.hasCheckbox"
+      :key="'chkall'"
+      class="bh-w-px"
+      :class="{
+        'bh-sticky bh-left-0 bh-bg-[#f6f7fa] bh-z-[1]': props.all.stickyHeader,
+      }"
+    >
       <div class="bh-checkbox">
         <input
           ref="selectedAll"
@@ -13,12 +20,20 @@
         </div>
       </div>
     </th>
-    <template v-for="col in props.all.columns">
+    <template v-for="(col, j) in props.all.columns">
       <th
         v-if="!col.hide"
         :key="col.field"
-        class="bh-select-none"
-        :class="[props.all.sortable && col.sort ? 'bh-cursor-pointer' : '']"
+        class="bh-select-none bh-z-[1]"
+        :class="[
+          props.all.sortable && col.sort ? 'bh-cursor-pointer' : '',
+          j === 0 && props.all.stickyFirstColumn
+            ? 'bh-sticky bh-left-0 bh-bg-[#f6f7fa]'
+            : '',
+          props.all.hasCheckbox && j === 0 && props.all.stickyFirstColumn
+            ? 'bh-left-[52px]'
+            : '',
+        ]"
         :style="{
           width: col.width,
           'min-width': col.minWidth,

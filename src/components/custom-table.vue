@@ -8,7 +8,7 @@
       :style="{ height: props.stickyHeader && props.height }"
     >
       <table :class="[props.skin]">
-        <thead :class="{ 'bh-sticky bh-top-0': props.stickyHeader }">
+        <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
           <column-header
             :all="props"
             :currentSortColumn="currentSortColumn"
@@ -34,7 +34,13 @@
               ]"
               @click.prevent="rowClick(item, i)"
             >
-              <td v-if="props.hasCheckbox">
+              <td
+                v-if="props.hasCheckbox"
+                :class="{
+                  'bh-sticky bh-left-0 bh-bg-[#f6f7fa]':
+                    props.stickyFirstColumn,
+                }"
+              >
                 <div class="bh-checkbox">
                   <input
                     v-model="selected"
@@ -47,7 +53,7 @@
                   </div>
                 </div>
               </td>
-              <template v-for="col in props.columns">
+              <template v-for="(col, j) in props.columns">
                 <td
                   v-if="!col.hide"
                   :key="col.field"
@@ -55,6 +61,12 @@
                     typeof props.cellClass === 'function'
                       ? cellClass(item)
                       : props.cellClass,
+                    j === 0 && props.stickyFirstColumn
+                      ? 'bh-sticky bh-left-0 bh-bg-[#f6f7fa]'
+                      : '',
+                    props.hasCheckbox && j === 0 && props.stickyFirstColumn
+                      ? 'bh-left-[52px]'
+                      : '',
                   ]"
                 >
                   <template v-if="slots[col.field]">

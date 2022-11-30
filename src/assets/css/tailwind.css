@@ -27,7 +27,7 @@
     @apply bh-border-b bh-border-[#f6f7fa];
   }
   .bh-table-responsive table.table-striped tbody tr:nth-child(odd) {
-    @apply bh-bg-[#e0e6ed]  bh-bg-opacity-[0.15];
+    @apply bh-bg-[#e0e6ed]/[0.15];
   }
   .bh-table-responsive table.table-hover tbody tr {
     @apply hover:bh-bg-[#f9fafb];
