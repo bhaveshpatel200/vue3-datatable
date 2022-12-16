@@ -116,6 +116,7 @@ bower install @bhplugin/vue3-datatable --save
 | noDataContent        | string                  | No data available                   | custom no data message                                                                                                                                            |
 | stickyHeader         | boolean                 | false                               | enable fixed header                                                                                                                                               |
 | height               | string                  | 450px                               | only will be used when stickyHeader enabled                                                                                                                       |
+| stickyFirstColumn    | boolean                 | false                               | enable fixed first column                                                                                                                                         |
 | cloneHeaderInFooter  | boolean                 | false                               | enable clone header in footer                                                                                                                                     |
 | selectRowOnClick     | boolean                 | false                               | enable to select row(checkbox) on row click                                                                                                                       |
 

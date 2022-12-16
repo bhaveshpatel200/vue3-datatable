@@ -5,7 +5,10 @@
       :key="'chkall'"
       class="bh-w-px"
       :class="{
-        'bh-sticky bh-left-0 bh-bg-[#f6f7fa] bh-z-[1]': props.all.stickyHeader,
+        'bh-sticky bh-bg-[#f6f7fa] bh-z-[1]':
+          props.all.stickyHeader || props.all.stickyFirstColumn,
+        'bh-top-0': props.all.stickyHeader,
+        'bh-left-0': props.all.stickyFirstColumn,
       }"
     >
       <div class="bh-checkbox">
