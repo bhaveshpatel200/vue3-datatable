@@ -138,6 +138,8 @@ bower install @bhplugin/vue3-datatable --save
 | search       | boolean          | true      | enabled global search                                 |
 | sort         | boolean          | true      | enable sorting                                        |
 | cellRenderer | function, string | true      | custom cell rendering                                 |
+| headerClass  | string           | ""        | custom header cell class                              |
+| cellClass    | string           | ""        | custom cell class                                     |
 
 ## Events
 

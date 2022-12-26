@@ -67,6 +67,7 @@
                     props.hasCheckbox && j === 0 && props.stickyFirstColumn
                       ? 'bh-left-[52px]'
                       : '',
+                    col.cellClass ? col.cellClass : '',
                   ]"
                 >
                   <template v-if="slots[col.field]">
@@ -315,6 +316,8 @@ interface colDef {
   sort: boolean;
   html?: boolean;
   cellRenderer?: [Function, string];
+  headerClass: string;
+  cellClass: string;
 }
 
 interface Props {

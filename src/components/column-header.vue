@@ -45,6 +45,7 @@
       >
         <div
           class="bh-flex bh-items-center"
+          :class="[col.headerClass ? col.headerClass : '']"
           @click="
             props.all.sortable && col.sort && emit('sortChange', col.field)
           "

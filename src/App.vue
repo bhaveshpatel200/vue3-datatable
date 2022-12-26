@@ -38,7 +38,12 @@ const datatable: any = ref(null);
 const cols =
   ref([
     { field: "id", title: "ID", isUnique: true, filter: false },
-    { field: "name", title: "Name" },
+    {
+      field: "name",
+      title: "Name",
+      headerClass: "bh-justify-center",
+      cellClass: "!bh-text-center",
+    },
     { field: "username", title: "Username" },
     { field: "email", title: "Email" },
     { field: "phone", title: "Phone" },
