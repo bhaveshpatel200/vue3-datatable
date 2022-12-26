@@ -1,6 +1,6 @@
 {
   "name": "@bhplugin/vue3-datatable",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Vue3 Datatable - fully customizable & easy to use datatable library",
   "private": false,
   "type": "module",
