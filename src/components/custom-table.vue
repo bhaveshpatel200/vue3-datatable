@@ -161,7 +161,7 @@
           <select
             v-if="props.showPageSize"
             v-model="curentPageSize"
-            class="bh-outline-0 focus:bh-ring-1 focus:bh-ring-[#e0e6ed]/40 bh-border bh-border-[#e0e6ed] bh-rounded bh-p-2"
+            class="bh-pagesize"
           >
             <option
               v-for="option in props.pageSizeOptions"
@@ -361,7 +361,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   isStatic: true,
-  skin: "table-striped table-hover",
+  skin: "bh-table-striped bh-table-hover",
   totalRows: 0,
   rows: () => [],
   columns: () => [],

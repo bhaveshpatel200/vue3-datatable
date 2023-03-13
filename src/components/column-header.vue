@@ -53,7 +53,7 @@
           {{ col.title }}
           <span
             v-if="props.all.sortable && col.sort"
-            class="bh-ml-3 bh-sort"
+            class="bh-ml-3 bh-sort bh-flex bh-items-center"
             :class="[props.currentSortColumn, props.currentSortDirection]"
           >
             <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
@@ -89,27 +89,27 @@
               v-if="col.type === 'string'"
               v-model.trim="col.value"
               type="text"
-              class="form-control"
+              class="bh-form-control"
               @keyup="emit('filterChange')"
             />
             <input
               v-if="col.type === 'number'"
               v-model.number.trim="col.value"
               type="number"
-              class="form-control"
+              class="bh-form-control"
               @keyup="emit('filterChange')"
             />
             <input
               v-else-if="col.type === 'date'"
               v-model="col.value"
               type="date"
-              class="form-control"
+              class="bh-form-control"
               @change="emit('filterChange')"
             />
             <select
               v-else-if="col.type === 'bool'"
               v-model="col.value"
-              class="form-control"
+              class="bh-form-control"
               @change="emit('filterChange')"
               @click="props.isOpenFilter = null"
             >

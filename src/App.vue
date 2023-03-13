@@ -5,7 +5,7 @@
         type="text"
         v-model="search"
         placeholder="Search..."
-        class="bh-border bh-p-1 bh-border-gray-200 bh-rounded bh-ml-2"
+        class="bh-border bh-border-solid bh-bg-white bh-p-2 bh-outline-0 bh-border-gray-200 focus:bh-border-gray-200 bh-rounded"
       />
     </div>
     <vue3-datatable
@@ -14,13 +14,12 @@
       :columns="cols"
       :totalRows="rows?.length"
       :sortable="true"
-      :pageSize="10"
+      :pageSize="5"
       :pageSizeOptions="[5, 10]"
       :search="search"
       :columnFilter="true"
       :hasCheckbox="true"
-      :stickyFirstColumn="true"
-      :stickyHeader="true"
+      skin="bh-table-bordered"
     >
       <template #id="data">
         <strong>#{{ data.value.id }}</strong>
@@ -31,19 +30,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import Vue3Datatable from "./components/custom-table.vue";
-import "./assets/css/tailwind.css";
+import "../dist/style.css";
 const search = ref("");
 const datatable: any = ref(null);
 
 const cols =
   ref([
     { field: "id", title: "ID", isUnique: true, filter: false },
-    {
-      field: "name",
-      title: "Name",
-      headerClass: "bh-justify-center",
-      cellClass: "!bh-text-center",
-    },
+    { field: "name", title: "Name" },
     { field: "username", title: "Username" },
     { field: "email", title: "Email" },
     { field: "phone", title: "Phone" },
