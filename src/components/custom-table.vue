@@ -742,7 +742,7 @@ const filterRows = () => {
     }
   });
 
-  filterRowCount.value = rows.length || 0;
+  filterRowCount.value = props.totalRows || 0;
 
   const result = rows.slice(offset.value - 1, <number>limit.value);
 
