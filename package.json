@@ -1,82 +1,82 @@
 {
-  "name": "@bhplugin/vue3-datatable",
-  "version": "1.0.2",
-  "description": "Vue3 Datatable - fully customizable & easy to use datatable library",
-  "private": false,
-  "type": "module",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/vue3-datatable.umd.js",
-  "module": "./dist/vue3-datatable.js",
-  "types": "./dist/main.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/vue3-datatable.js",
-      "require": "./dist/vue3-datatable.umd.js"
+    "name": "@bhplugin/vue3-datatable",
+    "version": "1.0.2",
+    "description": "Vue3 Datatable - fully customizable & easy to use datatable library",
+    "private": false,
+    "type": "module",
+    "files": [
+        "dist"
+    ],
+    "main": "./dist/vue3-datatable.umd.js",
+    "module": "./dist/vue3-datatable.js",
+    "types": "./dist/main.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/vue3-datatable.js",
+            "require": "./dist/vue3-datatable.umd.js"
+        },
+        "./dist/style.css": "./dist/style.css"
     },
-    "./dist/style.css": "./dist/style.css"
-  },
-  "author": {
-    "name": "Bhavesh Patel",
-    "email": "bhavesh.patel200@gmail.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/bhaveshpatel200/vue3-datatable.git"
-  },
-  "bugs": {
-    "url": "https://github.com/bhaveshpatel200/vue3-datatable/issues"
-  },
-  "homepage": "https://github.com/bhaveshpatel200/vue3-datatable#readme",
-  "keywords": [
-    "vue3",
-    "vue",
-    "vuejs",
-    "component",
-    "datatable",
-    "vue3 datatable",
-    "vue datatable",
-    "vue3-datatable",
-    "vue grid",
-    "vue3 grid",
-    "vue table",
-    "vue3 table",
-    "datagrid",
-    "data-grid",
-    "data-table",
-    "table",
-    "grid",
-    "filter",
-    "sorting",
-    "pagination"
-  ],
-  "license": "MIT",
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build && vue-tsc --emitDeclarationOnly && npm run tailwind:build",
-    "preview": "vite preview",
-    "tailwind": "npx tailwindcss -i ./src/assets/css/tailwind.css -o ./dist/style.css --watch",
-    "tailwind:build": "npx tailwindcss -i ./src/assets/css/tailwind.css -o ./dist/style.css --minify"
-  },
-  "dependencies": {
-    "vue": "^3.2.37"
-  },
-  "devDependencies": {
-    "@types/node": "^18.11.9",
-    "@vitejs/plugin-vue": "^3.0.0",
-    "autoprefixer": "^10.4.8",
-    "typescript": "^4.6.4",
-    "vite": "^3.0.0",
-    "vue-tsc": "^0.38.4"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead",
-    "not ie 11"
-  ]
+    "author": {
+        "name": "Bhavesh Patel",
+        "email": "bhavesh.patel200@gmail.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/bhaveshpatel200/vue3-datatable.git"
+    },
+    "bugs": {
+        "url": "https://github.com/bhaveshpatel200/vue3-datatable/issues"
+    },
+    "homepage": "https://github.com/bhaveshpatel200/vue3-datatable#readme",
+    "keywords": [
+        "vue3",
+        "vue",
+        "vuejs",
+        "component",
+        "datatable",
+        "vue3 datatable",
+        "vue datatable",
+        "vue3-datatable",
+        "vue grid",
+        "vue3 grid",
+        "vue table",
+        "vue3 table",
+        "datagrid",
+        "data-grid",
+        "data-table",
+        "table",
+        "grid",
+        "filter",
+        "sorting",
+        "pagination"
+    ],
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build && vue-tsc --emitDeclarationOnly && npm run tailwind:build",
+        "preview": "vite preview",
+        "tailwind": "npx tailwindcss -i ./src/assets/css/tailwind.css -o ./dist/style.css --watch",
+        "tailwind:build": "npx tailwindcss -i ./src/assets/css/tailwind.css -o ./dist/style.css --minify"
+    },
+    "dependencies": {
+        "vue": "^3.2.37"
+    },
+    "devDependencies": {
+        "@types/node": "^18.11.9",
+        "@vitejs/plugin-vue": "^3.0.0",
+        "autoprefixer": "^10.4.8",
+        "typescript": "^4.6.4",
+        "vite": "^3.0.0",
+        "vue-tsc": "^0.38.4"
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not dead",
+        "not ie 11"
+    ]
 }

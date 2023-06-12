@@ -88,7 +88,6 @@ bower install @bhplugin/vue3-datatable --save
 | -------------------- | :---------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | columns (required)   | array<colDef>           | []                                  | table columns                                                                                                                                                                 |
 | rows (required)      | array<any>              | []                                  | table rows                                                                                                                                                                    |
-| totalRows (required) | number                  | 0                                   | total number of rows                                                                                                                                                          |
 | skin                 | string                  | "bh-table-striped bh-table-hover"   | custom class for skin ('bh-table-striped' - for stripe row, 'bh-table-hover' - for hover row, 'bh-table-bordered' - for bordered row, 'bh-table-compact' - for compact table) |
 | loading              | boolean                 | false                               | enable loader                                                                                                                                                                 |
 | hasCheckbox          | boolean                 | false                               | enable checkbox                                                                                                                                                               |
@@ -166,10 +165,23 @@ bower install @bhplugin/vue3-datatable --save
 | unselectRow(index)   | will unselect row with the given index (non-existent row will be ignored)    |
 | isRowSelected(index) | will return true if the row with given index is selected                     |
 
+<br/>
+
 ## License
 
 @bhplugin/vue3-datatable is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
 
+<br/>
+
 ## Support
 
-[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png "Buy Me A Coffee")](https://www.buymeacoffee.com/bhplugin)
+<a target="_blank" href="https://www.buymeacoffee.com/bhplugin">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60">
+</a>
+
+<br/>
+
+## ng-datatable
+**<a target="_blank" href="https://www.npmjs.com/package/@bhplugin/ng-datatable">
+  @bhplugin/ng-datatable
+</a>**
