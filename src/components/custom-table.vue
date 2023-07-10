@@ -65,7 +65,7 @@
                     </tr>
 
                     <template v-if="!filterRowCount && currentLoader">
-                        <tr v-for="i in 6" :key="i" class="!bh-bg-white bh-h-11 !bh-border-transparent">
+                        <tr v-for="i in props.pageSize" :key="i" class="!bh-bg-white bh-h-11 !bh-border-transparent">
                             <td :colspan="props.columns.length + 1" class="!bh-p-0 !bh-border-transparent">
                                 <div class="bh-skeleton-box bh-h-8"></div>
                             </td>
@@ -93,13 +93,13 @@
                 <icon-loader />
             </div>
         </div>
-        <div v-if="props.pagination && filterRowCount" class="bh-pagination bh-py-5">
+        <div v-if="props.pagination && filterRowCount" class="bh-pagination bh-py-5" :class="{ 'bh-pointer-events-none': currentLoader }">
             <div class="bh-flex bh-items-center bh-flex-wrap bh-flex-col sm:bh-flex-row bh-gap-4">
                 <div class="bh-pagination-info bh-flex bh-items-center">
                     <span class="bh-mr-2">
                         {{ stringFormat(props.paginationInfo, filterRowCount ? offset : 0, limit, filterRowCount) }}
                     </span>
-                    <select v-if="props.showPageSize" v-model="curentPageSize" class="bh-pagesize">
+                    <select v-if="props.showPageSize" v-model="currentPageSize" class="bh-pagesize">
                         <option v-for="option in props.pageSizeOptions" :value="option" :key="option">
                             {{ option }}
                         </option>
@@ -199,7 +199,7 @@ export interface colDef {
 
 interface Props {
     loading?: boolean;
-    isStatic?: boolean;
+    isServerMode?: boolean;
     skin?: string;
     totalRows?: number;
     rows?: Array<any>;
@@ -237,7 +237,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
     loading: false,
-    isStatic: true,
+    isServerMode: false,
     skin: 'bh-table-striped bh-table-hover',
     totalRows: 0,
     rows: () => [],
@@ -289,15 +289,18 @@ for (const item of props.columns || []) {
 
 const filterItems: Ref<Array<any>> = ref([]);
 const currentPage = ref(props.page);
-const curentPageSize = ref(props.pagination ? props.pageSize : props.rows.length);
+const currentPageSize = ref(props.pagination ? props.pageSize : props.rows.length);
+const oldPageSize = props.pageSize;
 const currentSortColumn = ref(props.sortColumn);
+const oldSortColumn = props.sortColumn;
 const currentSortDirection = ref(props.sortDirection);
+const oldSortDirection = props.sortDirection;
 const filterRowCount = ref(props.totalRows);
 const selected: Ref<Array<any>> = ref([]);
 const selectedAll: any = ref(null);
 const currentLoader = ref(props.loading);
-const curentSearch = ref(props.search);
-const oldColumns = props.columns;
+const currentSearch = ref(props.search);
+const oldColumns = JSON.parse(JSON.stringify(props.columns));
 
 const isOpenFilter: any = ref(null);
 
@@ -309,7 +312,7 @@ const delay: number = ref(230);
 onMounted(() => {
     filterRows();
 });
-const emit = defineEmits(['sortChange', 'searchChange', 'pageChange', 'pageSizeChange', 'rowSelect', 'filterChange', 'rowClick', 'rowDBClick']);
+const emit = defineEmits(['change', 'sortChange', 'searchChange', 'pageChange', 'pageSizeChange', 'rowSelect', 'filterChange', 'rowClick', 'rowDBClick']);
 defineExpose({
     reset() {
         reset();
@@ -348,18 +351,18 @@ const uniqueKey = computed(() => {
 
 // Maximum number of pages
 const maxPage = computed(() => {
-    const totalPages = <number>curentPageSize.value < 1 ? 1 : Math.ceil(<number>filterRowCount.value / <number>curentPageSize.value);
+    const totalPages = <number>currentPageSize.value < 1 ? 1 : Math.ceil(<number>filterRowCount.value / <number>currentPageSize.value);
     return Math.max(totalPages || 0, 1);
 });
 
 // The starting value of the page number
 const offset = computed(() => {
-    return (currentPage.value - 1) * <number>curentPageSize.value + 1;
+    return (currentPage.value - 1) * <number>currentPageSize.value + 1;
 });
 
 // Maximum number of pages
 const limit = computed(() => {
-    const limit = currentPage.value * <number>curentPageSize.value;
+    const limit = currentPage.value * <number>currentPageSize.value;
     return <number>filterRowCount.value >= limit ? limit : filterRowCount.value;
 });
 
@@ -389,158 +392,156 @@ const paging = computed(() => {
 });
 
 const filterRows = () => {
+    let result = [];
     let rows = props.rows || [];
 
-    props.columns?.forEach((d) => {
-        if (d.filter && ((d.value !== undefined && d.value !== null && d.value !== '') || d.condition === 'is_null' || d.condition == 'is_not_null')) {
-            // string filters
-            if (d.type === 'string') {
-                if (d.condition === 'contain') {
+    if (props.isServerMode) {
+        filterRowCount.value = props.totalRows || 0;
+        result = rows;
+    } else {
+        props.columns?.forEach((d) => {
+            if (d.filter && ((d.value !== undefined && d.value !== null && d.value !== '') || d.condition === 'is_null' || d.condition == 'is_not_null')) {
+                // string filters
+                if (d.type === 'string') {
+                    if (d.condition === 'contain') {
+                        rows = rows.filter((item) => {
+                            return item[d.field]?.toString().toLowerCase().includes(d.value.toLowerCase());
+                        });
+                    } else if (d.condition === 'not_contain') {
+                        rows = rows.filter((item) => {
+                            return !item[d.field]?.toString().toLowerCase().includes(d.value.toLowerCase());
+                        });
+                    } else if (d.condition === 'equal') {
+                        rows = rows.filter((item) => {
+                            return item[d.field]?.toString().toLowerCase() === d.value.toLowerCase();
+                        });
+                    } else if (d.condition === 'not_equal') {
+                        rows = rows.filter((item) => {
+                            return item[d.field]?.toString().toLowerCase() !== d.value.toLowerCase();
+                        });
+                    } else if (d.condition == 'start_with') {
+                        rows = rows.filter((item) => {
+                            return item[d.field]?.toString().toLowerCase().indexOf(d.value.toLowerCase()) === 0;
+                        });
+                    } else if (d.condition == 'end_with') {
+                        rows = rows.filter((item) => {
+                            return (
+                                item[d.field]
+                                    ?.toString()
+                                    .toLowerCase()
+                                    .substr(d.value.length * -1) === d.value.toLowerCase()
+                            );
+                        });
+                    }
+                }
+                // number filters
+                else if (d.type === 'number') {
+                    if (d.condition === 'equal') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && parseFloat(item[d.field]) === parseFloat(d.value);
+                        });
+                    } else if (d.condition === 'not_equal') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && parseFloat(item[d.field]) !== parseFloat(d.value);
+                        });
+                    } else if (d.condition === 'greater_than') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && parseFloat(item[d.field]) > parseFloat(d.value);
+                        });
+                    } else if (d.condition === 'greater_than_equal') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && parseFloat(item[d.field]) >= parseFloat(d.value);
+                        });
+                    } else if (d.condition === 'less_than') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && parseFloat(item[d.field]) < parseFloat(d.value);
+                        });
+                    } else if (d.condition === 'less_than_equal') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && parseFloat(item[d.field]) <= parseFloat(d.value);
+                        });
+                    }
+                }
+                // date filters
+                else if (d.type === 'date') {
+                    if (d.condition === 'equal') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && dateFormat(item[d.field]) === d.value;
+                        });
+                    } else if (d.condition === 'not_equal') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && dateFormat(item[d.field]) !== d.value;
+                        });
+                    } else if (d.condition === 'greater_than') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && dateFormat(item[d.field]) > d.value;
+                        });
+                    } else if (d.condition === 'less_than') {
+                        rows = rows.filter((item) => {
+                            return item[d.field] && dateFormat(item[d.field]) < d.value;
+                        });
+                    }
+                }
+                // boolean filters
+                else if (d.type === 'bool') {
                     rows = rows.filter((item) => {
-                        return item[d.field]?.toString().toLowerCase().includes(d.value.toLowerCase());
+                        return item[d.field] === d.value;
                     });
-                } else if (d.condition === 'not_contain') {
+                }
+
+                if (d.condition === 'is_null') {
                     rows = rows.filter((item) => {
-                        return !item[d.field]?.toString().toLowerCase().includes(d.value.toLowerCase());
+                        return item[d.field] == null || item[d.field] == '';
                     });
-                } else if (d.condition === 'equal') {
+                    d.value = '';
+                } else if (d.condition === 'is_not_null') {
+                    d.value = '';
                     rows = rows.filter((item) => {
-                        return item[d.field]?.toString().toLowerCase() === d.value.toLowerCase();
-                    });
-                } else if (d.condition === 'not_equal') {
-                    rows = rows.filter((item) => {
-                        return item[d.field]?.toString().toLowerCase() !== d.value.toLowerCase();
-                    });
-                } else if (d.condition == 'start_with') {
-                    rows = rows.filter((item) => {
-                        return item[d.field]?.toString().toLowerCase().indexOf(d.value.toLowerCase()) === 0;
-                    });
-                } else if (d.condition == 'end_with') {
-                    rows = rows.filter((item) => {
-                        return (
-                            item[d.field]
-                                ?.toString()
-                                .toLowerCase()
-                                .substr(d.value.length * -1) === d.value.toLowerCase()
-                        );
+                        return item[d.field];
                     });
                 }
             }
-            // number filters
-            else if (d.type === 'number') {
-                if (d.condition === 'equal') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && parseFloat(item[d.field]) === parseFloat(d.value);
-                    });
-                } else if (d.condition === 'not_equal') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && parseFloat(item[d.field]) !== parseFloat(d.value);
-                    });
-                } else if (d.condition === 'greater_than') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && parseFloat(item[d.field]) > parseFloat(d.value);
-                    });
-                } else if (d.condition === 'greater_than_equal') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && parseFloat(item[d.field]) >= parseFloat(d.value);
-                    });
-                } else if (d.condition === 'less_than') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && parseFloat(item[d.field]) < parseFloat(d.value);
-                    });
-                } else if (d.condition === 'less_than_equal') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && parseFloat(item[d.field]) <= parseFloat(d.value);
-                    });
-                }
-            }
-            // date filters
-            else if (d.type === 'date') {
-                if (d.condition === 'equal') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && dateFormat(item[d.field]) === d.value;
-                    });
-                } else if (d.condition === 'not_equal') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && dateFormat(item[d.field]) !== d.value;
-                    });
-                } else if (d.condition === 'greater_than') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && dateFormat(item[d.field]) > d.value;
-                    });
-                } else if (d.condition === 'less_than') {
-                    rows = rows.filter((item) => {
-                        return item[d.field] && dateFormat(item[d.field]) < d.value;
-                    });
-                }
-            }
-            // boolean filters
-            else if (d.type === 'bool') {
-                rows = rows.filter((item) => {
-                    return item[d.field] === d.value;
+        });
+
+        if (currentSearch.value && rows.length) {
+            let final: Array<any> = [];
+
+            const keys = (props.columns || [])
+                .filter((d) => d.search && !d.hide)
+                .map((d) => {
+                    return d.field;
                 });
+
+            for (var j = 0; j < rows.length; j++) {
+                for (var i = 0; i < keys.length; i++) {
+                    if (cellValue(rows[j], keys[i])?.toString().toLowerCase().includes(currentSearch.value.toLowerCase())) {
+                        final.push(rows[j]);
+                        break;
+                    }
+                }
             }
 
-            if (d.condition === 'is_null') {
-                rows = rows.filter((item) => {
-                    return item[d.field] == null || item[d.field] == '';
-                });
-                d.value = '';
-            } else if (d.condition === 'is_not_null') {
-                d.value = '';
-                rows = rows.filter((item) => {
-                    return item[d.field];
-                });
-            }
+            rows = final;
         }
-    });
 
-    if (curentSearch.value && rows.length) {
-        let final: Array<any> = [];
+        // sort rows
+        var collator = new Intl.Collator(undefined, {
+            numeric: true,
+            sensitivity: 'base',
+        });
+        const sortOrder = currentSortDirection.value === 'desc' ? -1 : 1;
 
-        const keys = (props.columns || [])
-            .filter((d) => d.search && !d.hide)
-            .map((d) => {
-                return d.field;
-            });
+        rows.sort((a: any, b: any): number => {
+            const valA = currentSortColumn.value?.split('.').reduce((obj: any, key: string) => obj?.[key], a);
+            const valB = currentSortColumn.value?.split('.').reduce((obj: any, key: string) => obj?.[key], b);
 
-        for (var j = 0; j < rows.length; j++) {
-            for (var i = 0; i < keys.length; i++) {
-                if (cellValue(rows[j], keys[i])?.toString().toLowerCase().includes(curentSearch.value.toLowerCase())) {
-                    final.push(rows[j]);
-                    break;
-                }
-            }
-        }
+            return collator.compare(valA, valB) * sortOrder;
+        });
 
-        rows = final;
+        filterRowCount.value = rows.length || 0;
+
+        result = rows.slice(offset.value - 1, <number>limit.value);
     }
-
-    // sort rows
-    var collator = new Intl.Collator(undefined, {
-        numeric: true,
-        sensitivity: 'base',
-    });
-    const sortOrder = currentSortDirection.value === 'desc' ? -1 : 1;
-    const arr = <any>currentSortColumn?.value?.split('.');
-
-    rows.sort((a: any, b: any): number => {
-        if (arr.length === 2) {
-            return collator.compare(a[arr[0]]?.[arr[1]], b[arr[0]]?.[arr[1]]) * sortOrder;
-        } else if (arr.length === 3) {
-            return collator.compare(a[arr[0]]?.[arr[1]]?.[arr[2]], b[arr[0]]?.[arr[1]]?.[arr[2]]) * sortOrder;
-        } else if (arr.length === 4) {
-            return collator.compare(a[arr[0]]?.[arr[1]]?.[arr[2]]?.[arr[3]], b[arr[0]]?.[arr[1]]?.[arr[2]]?.[arr[3]]) * sortOrder;
-        } else if (arr.length === 5) {
-            return collator.compare(a[arr[0]]?.[arr[1]]?.[arr[2]]?.[arr[3]]?.[arr[4]], b[arr[0]]?.[arr[1]]?.[arr[2]]?.[arr[3]]?.[arr[4]]) * sortOrder;
-        } else {
-            return collator.compare(a[<any>currentSortColumn.value], b[<any>currentSortColumn.value]) * sortOrder;
-        }
-    });
-
-    filterRowCount.value = rows.length || 0;
-
-    const result = rows.slice(offset.value - 1, <number>limit.value);
 
     filterItems.value = result || [];
 };
@@ -569,13 +570,11 @@ const previousPage = () => {
         return false;
     }
     currentPage.value--;
-    // filterRows();
 };
 
 // page change
 const movePage = (page: number) => {
     currentPage.value = page;
-    // filterRows();
 };
 
 // next page
@@ -584,36 +583,49 @@ const nextPage = () => {
         return false;
     }
     currentPage.value++;
-    // filterRows();
 };
 
 // page changed
 const changePage = () => {
     selectAll(false);
 
-    filterRows();
-    emit('pageChange', currentPage.value);
+    if (props.isServerMode) {
+        changeForServer('page');
+    } else {
+        filterRows();
+        emit('pageChange', currentPage.value);
+    }
 };
 watch(() => currentPage.value, changePage);
 
 // row update
 const changeRows = () => {
-    currentPage.value = 1;
+    if (!props.isServerMode) {
+        currentPage.value = 1;
+    }
     selectAll(false);
-
     filterRows();
 };
 watch(() => props.rows, changeRows);
 
 // pagesize changed
 const changePageSize = () => {
-    currentPage.value = 1;
     selectAll(false);
 
-    filterRows();
-    emit('pageSizeChange', curentPageSize.value);
+    if (props.isServerMode) {
+        // for server side paginations
+        if (currentPage.value === 1) {
+            changeForServer('pagesize', true);
+        } else {
+            currentPage.value = 1; // changeForServer method call when currentPage change
+        }
+    } else {
+        currentPage.value = 1;
+        filterRows();
+        emit('pageSizeChange', currentPageSize.value);
+    }
 };
-watch(() => curentPageSize.value, changePageSize);
+watch(() => currentPageSize.value, changePageSize);
 
 // sorting
 const sortChange = (field: string) => {
@@ -623,14 +635,19 @@ const sortChange = (field: string) => {
             direction = 'desc';
         }
     }
-    let offset = (currentPage.value - 1) * <number>curentPageSize.value;
-    let limit = curentPageSize.value;
+    let offset = (currentPage.value - 1) * <number>currentPageSize.value;
+    let limit = currentPageSize.value;
     currentSortColumn.value = field;
     currentSortDirection.value = direction;
 
     selectAll(false);
     filterRows();
-    emit('sortChange', { offset, limit, field, direction });
+
+    if (props.isServerMode) {
+        changeForServer('sort');
+    } else {
+        emit('sortChange', { offset, limit, field, direction });
+    }
 };
 
 // checkboax
@@ -652,46 +669,49 @@ const selectAll = (checked: any) => {
 
 // columns filter
 const filterChange = () => {
-    currentPage.value = 1;
     selectAll(false);
-    filterRows();
 
-    emit('filterChange', props.columns);
+    if (props.isServerMode) {
+        // for server side paginations
+        if (currentPage.value === 1) {
+            changeForServer('filter', true);
+        } else {
+            currentPage.value = 1; // changeForServer method call when currentPage change
+        }
+    } else {
+        currentPage.value = 1;
+        filterRows();
+        emit('filterChange', props.columns);
+    }
 };
-// watch(() => props.columns, filterChange, { deep: true });
 
 // search
 const changeSearch = () => {
-    // if (currentPage.value === 1) {
-    currentPage.value = 1;
     selectAll(false);
-    filterRows();
-    // } else {
-    // currentPage.value = 1;
-    // }
-    emit('searchChange', curentSearch.value);
+
+    if (props.isServerMode) {
+        // for server side paginations
+        if (currentPage.value === 1) {
+            changeForServer('search', true);
+        } else {
+            currentPage.value = 1; // changeForServer method call when currentPage change
+        }
+    } else {
+        currentPage.value = 1;
+        filterRows();
+        emit('searchChange', currentSearch.value);
+    }
 };
 watch(() => props.search, changeSearch);
 watch(
     () => props.search,
     () => {
-        curentSearch.value = props.search;
+        currentSearch.value = props.search;
     }
 );
 
 const cellValue = (item: any, field: string) => {
-    if (field.includes('.')) {
-        const arr = field.split('.');
-        if (arr.length === 5) {
-            return item[arr[0]]?.[arr[1]]?.[arr[2]]?.[arr[3]]?.[arr[4]];
-        } else if (arr.length === 4) {
-            return item[arr[0]]?.[arr[1]]?.[arr[2]]?.[arr[3]];
-        } else if (arr.length === 3) {
-            return item[arr[0]]?.[arr[1]]?.[arr[2]];
-        }
-        return item[arr[0]]?.[arr[1]];
-    }
-    return item?.[field];
+    return field?.split('.').reduce((obj, key) => obj?.[key], item);
 };
 
 const dateFormat = (date: any) => {
@@ -735,17 +755,48 @@ const rowClick = (item: any, index: number) => {
     }
 };
 
+// emit change event for server side pagination
+const changeForServer = (changeType: string, isResetPage = false) => {
+    if (props.isServerMode) {
+        const res = {
+            current_page: isResetPage ? 1 : currentPage.value,
+            pagesize: currentPageSize.value,
+            offset: (currentPage.value - 1) * <number>currentPageSize.value,
+            sort_column: currentSortColumn.value,
+            sort_direction: currentSortDirection.value,
+            search: currentSearch.value,
+            column_filters: props.columns,
+            change_type: changeType,
+        };
+        emit('change', res);
+    }
+};
+
 // methods
 const reset = () => {
+    selectAll(false);
     props.columns?.forEach((d, i) => {
         d = oldColumns[i];
     });
-    curentSearch.value = '';
-    currentPage.value = 1;
-    currentSortColumn.value = 'id';
-    currentSortDirection.value = 'asc';
-    selectAll(false);
-    filterRows();
+    for (let i = 0; i < props.columns.length; i++) {
+        props.columns[i] = oldColumns[i];
+    }
+    currentSearch.value = '';
+    currentPageSize.value = oldPageSize;
+    currentSortColumn.value = oldSortColumn;
+    currentSortDirection.value = oldSortDirection;
+
+    if (props.isServerMode) {
+        // for server side paginations
+        if (currentPage.value === 1) {
+            changeForServer('reset', true);
+        } else {
+            currentPage.value = 1; // changeForServer method call when currentPage change
+        }
+    } else {
+        currentPage.value = 1;
+        filterRows();
+    }
 };
 const getSelectedRows = () => {
     const rows = filterItems.value.filter((d, i) => selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i));
