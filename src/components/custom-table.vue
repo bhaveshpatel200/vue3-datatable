@@ -403,30 +403,34 @@ const filterRows = () => {
             if (d.filter && ((d.value !== undefined && d.value !== null && d.value !== '') || d.condition === 'is_null' || d.condition == 'is_not_null')) {
                 // string filters
                 if (d.type === 'string') {
+                    if (d.value && !d.condition) {
+                        d.condition = 'contain';
+                    }
+
                     if (d.condition === 'contain') {
                         rows = rows.filter((item) => {
-                            return item[d.field]?.toString().toLowerCase().includes(d.value.toLowerCase());
+                            return cellValue(item, d.field)?.toString().toLowerCase().includes(d.value.toLowerCase());
                         });
                     } else if (d.condition === 'not_contain') {
                         rows = rows.filter((item) => {
-                            return !item[d.field]?.toString().toLowerCase().includes(d.value.toLowerCase());
+                            return !cellValue(item, d.field)?.toString().toLowerCase().includes(d.value.toLowerCase());
                         });
                     } else if (d.condition === 'equal') {
                         rows = rows.filter((item) => {
-                            return item[d.field]?.toString().toLowerCase() === d.value.toLowerCase();
+                            return cellValue(item, d.field)?.toString().toLowerCase() === d.value.toLowerCase();
                         });
                     } else if (d.condition === 'not_equal') {
                         rows = rows.filter((item) => {
-                            return item[d.field]?.toString().toLowerCase() !== d.value.toLowerCase();
+                            return cellValue(item, d.field)?.toString().toLowerCase() !== d.value.toLowerCase();
                         });
                     } else if (d.condition == 'start_with') {
                         rows = rows.filter((item) => {
-                            return item[d.field]?.toString().toLowerCase().indexOf(d.value.toLowerCase()) === 0;
+                            return cellValue(item, d.field)?.toString().toLowerCase().indexOf(d.value.toLowerCase()) === 0;
                         });
                     } else if (d.condition == 'end_with') {
                         rows = rows.filter((item) => {
                             return (
-                                item[d.field]
+                                cellValue(item, d.field)
                                     ?.toString()
                                     .toLowerCase()
                                     .substr(d.value.length * -1) === d.value.toLowerCase()
@@ -436,68 +440,76 @@ const filterRows = () => {
                 }
                 // number filters
                 else if (d.type === 'number') {
+                    if (d.value && !d.condition) {
+                        d.condition = 'equal';
+                    }
+
                     if (d.condition === 'equal') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && parseFloat(item[d.field]) === parseFloat(d.value);
+                            return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) === parseFloat(d.value);
                         });
                     } else if (d.condition === 'not_equal') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && parseFloat(item[d.field]) !== parseFloat(d.value);
+                            return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) !== parseFloat(d.value);
                         });
                     } else if (d.condition === 'greater_than') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && parseFloat(item[d.field]) > parseFloat(d.value);
+                            return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) > parseFloat(d.value);
                         });
                     } else if (d.condition === 'greater_than_equal') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && parseFloat(item[d.field]) >= parseFloat(d.value);
+                            return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) >= parseFloat(d.value);
                         });
                     } else if (d.condition === 'less_than') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && parseFloat(item[d.field]) < parseFloat(d.value);
+                            return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) < parseFloat(d.value);
                         });
                     } else if (d.condition === 'less_than_equal') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && parseFloat(item[d.field]) <= parseFloat(d.value);
+                            return cellValue(item, d.field) && parseFloat(cellValue(item, d.field)) <= parseFloat(d.value);
                         });
                     }
                 }
                 // date filters
                 else if (d.type === 'date') {
+                    if (d.value && !d.condition) {
+                        d.condition = 'equal';
+                    }
+
                     if (d.condition === 'equal') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && dateFormat(item[d.field]) === d.value;
+                            return cellValue(item, d.field) && dateFormat(cellValue(item, d.field)) === d.value;
                         });
                     } else if (d.condition === 'not_equal') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && dateFormat(item[d.field]) !== d.value;
+                            return cellValue(item, d.field) && dateFormat(cellValue(item, d.field)) !== d.value;
                         });
                     } else if (d.condition === 'greater_than') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && dateFormat(item[d.field]) > d.value;
+                            return cellValue(item, d.field) && dateFormat(cellValue(item, d.field)) > d.value;
                         });
                     } else if (d.condition === 'less_than') {
                         rows = rows.filter((item) => {
-                            return item[d.field] && dateFormat(item[d.field]) < d.value;
+                            return cellValue(item, d.field) && dateFormat(cellValue(item, d.field)) < d.value;
                         });
                     }
                 }
                 // boolean filters
                 else if (d.type === 'bool') {
                     rows = rows.filter((item) => {
-                        return item[d.field] === d.value;
+                        return cellValue(item, d.field) === d.value;
                     });
                 }
 
                 if (d.condition === 'is_null') {
                     rows = rows.filter((item) => {
-                        return item[d.field] == null || item[d.field] == '';
+                        return cellValue(item, d.field) == null || cellValue(item, d.field) == '';
                     });
                     d.value = '';
                 } else if (d.condition === 'is_not_null') {
                     d.value = '';
                     rows = rows.filter((item) => {
-                        return item[d.field];
+                        return cellValue(item, d.field);
                     });
                 }
             }
@@ -758,6 +770,8 @@ const rowClick = (item: any, index: number) => {
 // emit change event for server side pagination
 const changeForServer = (changeType: string, isResetPage = false) => {
     if (props.isServerMode) {
+        setDefaultCondition();
+
         const res = {
             current_page: isResetPage ? 1 : currentPage.value,
             pagesize: currentPageSize.value,
@@ -772,12 +786,28 @@ const changeForServer = (changeType: string, isResetPage = false) => {
     }
 };
 
+// set default conditions when values exists and condition empty
+const setDefaultCondition = () => {
+    for (let i = 0; i < props.columns.length; i++) {
+        let d = props.columns[i];
+
+        if (d.filter && ((d.value !== undefined && d.value !== null && d.value !== '') || d.condition === 'is_null' || d.condition === 'is_not_null')) {
+            if (d.type === 'string' && d.value && !d.condition) {
+                d.condition = 'contain';
+            }
+            if (d.type === 'number' && d.value && !d.condition) {
+                d.condition = 'equal';
+            }
+            if (d.type === 'date' && d.value && !d.condition) {
+                d.condition = 'equal';
+            }
+        }
+    }
+};
+
 // methods
 const reset = () => {
     selectAll(false);
-    props.columns?.forEach((d, i) => {
-        d = oldColumns[i];
-    });
     for (let i = 0; i < props.columns.length; i++) {
         props.columns[i] = oldColumns[i];
     }

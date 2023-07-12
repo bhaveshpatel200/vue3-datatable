@@ -1,8 +1,8 @@
 # @bhplugin/vue3-datatable
-
+<br/>
 ## Example
 
-[**Document & Demos**](https://vue3-datatable-document.vercel.app)
+[Document & Demos](https://vue3-datatable-document.vercel.app)
 
 ## Install
 
