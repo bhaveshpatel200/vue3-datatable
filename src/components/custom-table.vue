@@ -9,6 +9,7 @@
                         :currentSortDirection="currentSortDirection"
                         :isOpenFilter="isOpenFilter"
                         :checkAll="selectedAll"
+                        :columnFilterLang="props.columnFilterLang"
                         @selectAll="selectAll"
                         @sortChange="sortChange"
                         @filterChange="filterChange"
@@ -217,6 +218,7 @@ interface Props {
     sortColumn?: string;
     sortDirection?: string;
     columnFilter?: boolean;
+    columnFilterLang: Record<string, string>;
     pagination?: boolean;
     showNumbers?: boolean;
     showNumbersCount?: number;
@@ -256,6 +258,7 @@ const props = withDefaults(defineProps<Props>(), {
     sortColumn: 'id',
     sortDirection: 'asc',
     columnFilter: false,
+    columnFilterLang: {},
     pagination: true,
     showNumbers: true,
     showNumbersCount: 5,
@@ -335,6 +338,15 @@ defineExpose({
     isRowSelected(index: number) {
         return isRowSelected(index);
     },
+    getFilteredRows() {
+        return filteredRows();
+    },
+    saveState(name: string) {
+        saveState(name);
+    },
+    loadState(name: string) {
+        loadState(name);
+    },
 });
 
 const stringFormat = (template: string, ...args: any[]) => {
@@ -391,14 +403,10 @@ const paging = computed(() => {
     return pages;
 });
 
-const filterRows = () => {
-    let result = [];
+const filteredRows = () => {
     let rows = props.rows || [];
 
-    if (props.isServerMode) {
-        filterRowCount.value = props.totalRows || 0;
-        result = rows;
-    } else {
+    if (!props.isServerMode) {
         props.columns?.forEach((d) => {
             if (d.filter && ((d.value !== undefined && d.value !== null && d.value !== '') || d.condition === 'is_null' || d.condition == 'is_not_null')) {
                 // string filters
@@ -535,7 +543,19 @@ const filterRows = () => {
 
             rows = final;
         }
+    }
 
+    return rows;
+};
+
+const filterRows = () => {
+    let result = [];
+    let rows = filteredRows();
+
+    if (props.isServerMode) {
+        filterRowCount.value = props.totalRows || 0;
+        result = rows;
+    } else {
         // sort rows
         var collator = new Intl.Collator(undefined, {
             numeric: true,
@@ -554,7 +574,6 @@ const filterRows = () => {
 
         result = rows.slice(offset.value - 1, <number>limit.value);
     }
-
     filterItems.value = result || [];
 };
 watch(
@@ -857,5 +876,50 @@ const isRowSelected = (index: number) => {
         return selected.value.includes(uniqueKey.value ? rows[uniqueKey.value as never] : index);
     }
     return false;
+};
+const saveState = (name: string) => {
+    let state_values = {
+        columns: props.columns,
+        search: currentSearch.value,
+        page_size: currentPageSize.value,
+        page: currentPage.value,
+        sort_column: currentSortColumn.value,
+        sort_direction: currentSortDirection.value,
+    };
+    localStorage.setItem('bh-dt-' + name, JSON.stringify(state_values));
+};
+const loadState = (name: string) => {
+    // Load saved state
+    let state = localStorage.getItem('bh-dt-' + name);
+    if (!state)
+        return;
+
+    // Unselect all rows
+    selectAll(false);
+
+    // Parse saved state
+    let state_values = JSON.parse(state);
+
+    // Apply saved state
+    for (let i = 0; i < props.columns.length; i++) {
+        if (state_values['columns'][i] && props.columns[i].field == state_values['columns'][i].field)
+            props.columns[i] = state_values['columns'][i];
+    }
+    currentSearch.value = state_values['search'] ?? currentSearch.value;
+    currentPageSize.value = state_values['page_size'] ?? oldPageSize;
+    currentSortColumn.value = state_values['sort_column'] ?? oldSortColumn;
+    currentSortDirection.value = state_values['sort_direction'] ?? oldSortDirection;
+
+    // Reload component
+    if (props.isServerMode) {
+        if (state_values['page'] === 1) {
+            changeForServer('reset', true);
+        } else {
+            currentPage.value = state_values['page'] ?? 1;
+        }
+    } else {
+        currentPage.value = state_values['page'] ?? 1;
+        filterRows();
+    }
 };
 </script>

@@ -103,6 +103,7 @@ bower install @bhplugin/vue3-datatable --save
 | **sortColumn**          | string                  | "id"                                | name of sort column                                                                                                                                                                                   |
 | **sortDirection**       | string                  | "asc"                               | sort direction (asc or desc)                                                                                                                                                                          |
 | **columnFilter**        | boolean                 | false                               | enable individual column filter                                                                                                                                                                       |
+| **columnFilterLang**    | records<string,string>  | {}                                  | columns filters translation (keys : contain, end_with, equal, greater_than, greater_than_equal, is_null, less_than, less_than_equal, no_filter, not_contain, not_equal, is_not_null, start_with)      |
 | **pagination**          | boolean                 | true                                | enable pagination                                                                                                                                                                                     |
 | **showNumbers**         | boolean                 | true                                | enable numbers pagination                                                                                                                                                                             |
 | **showNumbersCount**    | number                  | 5                                   | show numbers of count in pagination                                                                                                                                                                   |
@@ -156,15 +157,19 @@ bower install @bhplugin/vue3-datatable --save
 
 ## Methods
 
-| Name                     | Description                                                                  |
-| ------------------------ | ---------------------------------------------------------------------------- |
-| **reset**                | will reset all options like selected rows, filter, search, currennt page etc |
-| **getSelectedRows**      | will returns all selected rows                                               |
-| **getColumnFilters**     | will return all column filters                                               |
-| **clearSelectedRows**    | will unselect all selected rows                                              |
-| **selectRow(index)**     | will select row with the given index (non-existent row will be ignored)      |
-| **unselectRow(index)**   | will unselect row with the given index (non-existent row will be ignored)    |
-| **isRowSelected(index)** | will return true if the row with given index is selected                     |
+| Name                     | Description                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| **reset**                | will reset all options like selected rows, filter, search, currennt page etc            |
+| **getFilteredRows**      | will returns all filtered rows                                                          |
+| **getSelectedRows**      | will returns all selected rows                                                          |
+| **getColumnFilters**     | will return all column filters                                                          |
+| **clearSelectedRows**    | will unselect all selected rows                                                         |
+| **selectRow(index)**     | will select row with the given index (non-existent row will be ignored)                 |
+| **unselectRow(index)**   | will unselect row with the given index (non-existent row will be ignored)               |
+| **isRowSelected(index)** | will return true if the row with given index is selected                                |
+| **getFilteredRows**      | will return all filtered rows                                                           |
+| **saveState(name)**      | will save current datatable state to local storage with the given name                  |
+| **loadState(name)**      | will load, from local storage, the state with the given name and update datatable state |
 
 <br/>
 
