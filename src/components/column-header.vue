@@ -73,6 +73,7 @@
                             v-show="props.isOpenFilter === col.field"
                             :column="col"
                             :type="col.type"
+                            :columnFilterLang="props.columnFilterLang"
                             @close="emit('toggleFilterMenu', null)"
                             @filterChange="emit('filterChange')"
                         />
@@ -91,7 +92,7 @@ import iconFilter from './icon-filter.vue';
 
 const selectedAll: any = ref(null);
 
-const props = defineProps(['all', 'currentSortColumn', 'currentSortDirection', 'isOpenFilter', 'isFooter', 'checkAll']);
+const props = defineProps(['all', 'currentSortColumn', 'currentSortDirection', 'isOpenFilter', 'isFooter', 'checkAll', 'columnFilterLang']);
 
 const emit = defineEmits(['selectAll', 'sortChange', 'filterChange', 'toggleFilterMenu']);
 const checkboxChange = () => {

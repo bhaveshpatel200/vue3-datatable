@@ -1,5 +1,5 @@
 # @bhplugin/vue3-datatable
-<br/>
+
 ## Example
 
 [Document & Demos](https://vue3-datatable-document.vercel.app)
@@ -35,7 +35,7 @@ bower install @bhplugin/vue3-datatable --save
     import { ref } from "vue";
     import Vue3Datatable from "@bhplugin/vue3-datatable";
     import "@bhplugin/vue3-datatable/dist/style.css";
-    
+
     const cols = ref([
       { field: "id", title: "ID", width: "90px", filter: false },
       { field: "name", title: "Name" },
@@ -103,6 +103,7 @@ bower install @bhplugin/vue3-datatable --save
 | **sortColumn**          | string                  | "id"                                | name of sort column                                                                                                                                                                                   |
 | **sortDirection**       | string                  | "asc"                               | sort direction (asc or desc)                                                                                                                                                                          |
 | **columnFilter**        | boolean                 | false                               | enable individual column filter                                                                                                                                                                       |
+| **columnFilterLang**    | records<string,string>  | null                                | columns filters translation (**ex**: {no_filter: 'Aucun', contain: 'Contiens', not_contain: 'Ne contiens pas', equal: 'Egale', not_equal: 'Différent', start_with: 'Commence par', end_with: 'Termine par', greater_than: 'Supérieur à', greater_than_equal: 'Sup. ou égale à', less_than: 'Inférieur à', less_than_equal: 'Inf. ou égale à', is_null: 'Est null', is_not_null: 'Non null'} )      |
 | **pagination**          | boolean                 | true                                | enable pagination                                                                                                                                                                                     |
 | **showNumbers**         | boolean                 | true                                | enable numbers pagination                                                                                                                                                                             |
 | **showNumbersCount**    | number                  | 5                                   | show numbers of count in pagination                                                                                                                                                                   |
@@ -159,8 +160,9 @@ bower install @bhplugin/vue3-datatable --save
 | Name                     | Description                                                                  |
 | ------------------------ | ---------------------------------------------------------------------------- |
 | **reset**                | will reset all options like selected rows, filter, search, currennt page etc |
-| **getSelectedRows**      | will returns all selected rows                                               |
+| **getFilteredRows**      | will returns all filtered rows                                               |
 | **getColumnFilters**     | will return all column filters                                               |
+| **getSelectedRows**      | will returns all selected rows                                               |
 | **clearSelectedRows**    | will unselect all selected rows                                              |
 | **selectRow(index)**     | will select row with the given index (non-existent row will be ignored)      |
 | **unselectRow(index)**   | will unselect row with the given index (non-existent row will be ignored)    |

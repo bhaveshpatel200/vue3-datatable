@@ -9,6 +9,7 @@
                         :currentSortDirection="currentSortDirection"
                         :isOpenFilter="isOpenFilter"
                         :checkAll="selectedAll"
+                        :columnFilterLang="props.columnFilterLang"
                         @selectAll="selectAll"
                         @sortChange="sortChange"
                         @filterChange="filterChange"
@@ -217,6 +218,7 @@ interface Props {
     sortColumn?: string;
     sortDirection?: string;
     columnFilter?: boolean;
+    columnFilterLang?: Record<string, string> | null;
     pagination?: boolean;
     showNumbers?: boolean;
     showNumbersCount?: number;
@@ -256,6 +258,7 @@ const props = withDefaults(defineProps<Props>(), {
     sortColumn: 'id',
     sortDirection: 'asc',
     columnFilter: false,
+    columnFilterLang: null,
     pagination: true,
     showNumbers: true,
     showNumbersCount: 5,
@@ -306,8 +309,8 @@ const isOpenFilter: any = ref(null);
 
 // row click
 const timer: any = ref(null);
-let clickCount: number = ref(0);
-const delay: number = ref(230);
+let clickCount: Ref<number> = ref(0);
+const delay: Ref<number> = ref(230);
 
 onMounted(() => {
     filterRows();
@@ -334,6 +337,9 @@ defineExpose({
     },
     isRowSelected(index: number) {
         return isRowSelected(index);
+    },
+    getFilteredRows() {
+        return filteredRows();
     },
 });
 
@@ -391,14 +397,10 @@ const paging = computed(() => {
     return pages;
 });
 
-const filterRows = () => {
-    let result = [];
+const filteredRows = () => {
     let rows = props.rows || [];
 
-    if (props.isServerMode) {
-        filterRowCount.value = props.totalRows || 0;
-        result = rows;
-    } else {
+    if (!props.isServerMode) {
         props.columns?.forEach((d) => {
             if (d.filter && ((d.value !== undefined && d.value !== null && d.value !== '') || d.condition === 'is_null' || d.condition == 'is_not_null')) {
                 // string filters
@@ -549,9 +551,20 @@ const filterRows = () => {
 
             return collator.compare(valA, valB) * sortOrder;
         });
+    }
 
+    return rows;
+};
+
+const filterRows = () => {
+    let result = [];
+    let rows = filteredRows();
+
+    if (props.isServerMode) {
+        filterRowCount.value = props.totalRows || 0;
+        result = rows;
+    } else {
         filterRowCount.value = rows.length || 0;
-
         result = rows.slice(offset.value - 1, <number>limit.value);
     }
 
@@ -722,7 +735,7 @@ watch(
     }
 );
 
-const cellValue = (item: any, field: string) => {
+const cellValue = (item: any, field: string | undefined) => {
     return field?.split('.').reduce((obj, key) => obj?.[key], item);
 };
 
