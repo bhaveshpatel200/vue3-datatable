@@ -727,11 +727,12 @@ const changeSearch = () => {
         emit('searchChange', currentSearch.value);
     }
 };
-watch(() => props.search, changeSearch);
+
 watch(
     () => props.search,
     () => {
         currentSearch.value = props.search;
+        changeSearch();
     }
 );
 
