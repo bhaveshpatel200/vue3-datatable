@@ -292,7 +292,7 @@ for (const item of props.columns || []) {
 
 const filterItems: Ref<Array<any>> = ref([]);
 const currentPage = ref(props.page);
-const currentPageSize = ref(props.pagination ? props.pageSize : props.rows.length);
+const currentPageSize = ref(props.pagination ? props.pageSize : props.rows?.length);
 const oldPageSize = props.pageSize;
 const currentSortColumn = ref(props.sortColumn);
 const oldSortColumn = props.sortColumn;
@@ -517,7 +517,7 @@ const filteredRows = () => {
             }
         });
 
-        if (currentSearch.value && rows.length) {
+        if (currentSearch.value && rows?.length) {
             let final: Array<any> = [];
 
             const keys = (props.columns || [])
@@ -526,7 +526,7 @@ const filteredRows = () => {
                     return d.field;
                 });
 
-            for (var j = 0; j < rows.length; j++) {
+            for (var j = 0; j < rows?.length; j++) {
                 for (var i = 0; i < keys.length; i++) {
                     if (cellValue(rows[j], keys[i])?.toString().toLowerCase().includes(currentSearch.value.toLowerCase())) {
                         final.push(rows[j]);
@@ -540,7 +540,7 @@ const filteredRows = () => {
 
         // sort rows
         var collator = new Intl.Collator(undefined, {
-            numeric: true,
+            numeric: props.columns.find((col) => col.field == currentSortColumn.value)?.type === 'number',
             sensitivity: 'base',
         });
         const sortOrder = currentSortDirection.value === 'desc' ? -1 : 1;
@@ -564,7 +564,7 @@ const filterRows = () => {
         filterRowCount.value = props.totalRows || 0;
         result = rows;
     } else {
-        filterRowCount.value = rows.length || 0;
+        filterRowCount.value = rows?.length || 0;
         result = rows.slice(offset.value - 1, <number>limit.value);
     }
 
