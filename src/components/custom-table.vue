@@ -1,6 +1,6 @@
 <template>
     <div class="bh-datatable bh-antialiased bh-relative bh-text-black bh-text-sm bh-font-normal">
-        <div class="bh-table-responsive" :class="{ 'bh-min-h-[300px]': currentLoader }" :style="{ height: props.stickyHeader && props.height }">
+        <div class="bh-table-responsive" :class="{ 'bh-min-h-[300px]': currentLoader }" :style="{ height: props.height || '' }">
             <table :class="[props.skin]">
                 <thead :class="{ 'bh-sticky bh-top-0 bh-z-10': props.stickyHeader }">
                     <column-header
@@ -20,8 +20,8 @@
                     <template v-if="filterRowCount">
                         <tr
                             v-for="(item, i) in filterItems"
-                            :key="item[uniqueKey] ? item[uniqueKey] : i"
-                            :class="[typeof props.rowClass === 'function' ? rowClass(item) : props.rowClass, props.selectRowOnClick ? 'bh-cursor-pointer' : '']"
+                            :key="item[uniqueKey!] != null ? item[uniqueKey!] : i"
+                            :class="[typeof props.rowClass === 'function' ? props.rowClass(item) : props.rowClass, props.selectRowOnClick ? 'bh-cursor-pointer' : '']"
                             @click.prevent="rowClick(item, i)"
                         >
                             <td
@@ -48,10 +48,10 @@
                                         col.cellClass ? col.cellClass : '',
                                     ]"
                                 >
-                                    <template v-if="slots[col.field]">
+                                    <template v-if="slots[col.field!]">
                                         <slot :name="col.field" :value="item"></slot>
                                     </template>
-                                    <div v-else-if="col.cellRenderer" v-html="col.cellRenderer(item)"></div>
+                                    <div v-else-if="col.cellRenderer" v-html="typeof col.cellRenderer == 'function' && col.cellRenderer(item)"></div>
                                     <template v-else>
                                         {{ cellValue(item, col.field) }}
                                     </template>
@@ -110,22 +110,27 @@
                 <div class="bh-pagination-number sm:bh-ml-auto bh-inline-flex bh-items-center bh-space-x-1">
                     <button v-if="props.showFirstPage" type="button" class="bh-page-item first-page" :class="{ disabled: currentPage <= 1 }" @click="currentPage = 1">
                         <span v-if="props.firstArrow" v-html="props.firstArrow"> </span>
-                        <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
-                            <g fill="currentColor" fill-rule="evenodd">
-                                <path d="M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
-                                <path d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
-                            </g>
-                        </svg>
+                        <slot v-else name="firstArrow">
+                            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                                <g fill="currentColor" fill-rule="evenodd">
+                                    <path d="M8.354 1.646a.5.5 0 0 1 0 .708L2.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                                    <path d="M12.354 1.646a.5.5 0 0 1 0 .708L6.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+                                </g>
+                            </svg>
+                        </slot>
                     </button>
                     <button type="button" class="bh-page-item previous-page" :class="{ disabled: currentPage <= 1 }" @click="previousPage">
                         <span v-if="props.previousArrow" v-html="props.previousArrow"> </span>
-                        <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
-                            <path
-                                fill="currentColor"
-                                fill-rule="evenodd"
-                                d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"
-                            />
-                        </svg>
+
+                        <slot v-else name="previousArrow">
+                            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                                <path
+                                    fill="currentColor"
+                                    fill-rule="evenodd"
+                                    d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"
+                                />
+                            </svg>
+                        </slot>
                     </button>
 
                     <template v-if="props.showNumbers">
@@ -146,23 +151,27 @@
 
                     <button type="button" class="bh-page-item next-page" :class="{ disabled: currentPage >= maxPage }" @click="nextPage">
                         <span v-if="props.nextArrow" v-html="props.nextArrow"> </span>
-                        <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
-                            <path
-                                fill="currentColor"
-                                fill-rule="evenodd"
-                                d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8L4.646 2.354a.5.5 0 0 1 0-.708z"
-                            />
-                        </svg>
+                        <slot v-else name="nextArrow">
+                            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                                <path
+                                    fill="currentColor"
+                                    fill-rule="evenodd"
+                                    d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8L4.646 2.354a.5.5 0 0 1 0-.708z"
+                                />
+                            </svg>
+                        </slot>
                     </button>
 
                     <button v-if="props.showLastPage" type="button" class="bh-page-item last-page" :class="{ disabled: currentPage >= maxPage }" @click="currentPage = maxPage">
                         <span v-if="props.lastArrow" v-html="props.lastArrow"> </span>
-                        <svg v-else aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
-                            <g fill="currentColor" fill-rule="evenodd">
-                                <path d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8L3.646 2.354a.5.5 0 0 1 0-.708z" />
-                                <path d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8L7.646 2.354a.5.5 0 0 1 0-.708z" />
-                            </g>
-                        </svg>
+                        <slot v-else name="lastArrow">
+                            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
+                                <g fill="currentColor" fill-rule="evenodd">
+                                    <path d="M3.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L9.293 8L3.646 2.354a.5.5 0 0 1 0-.708z" />
+                                    <path d="M7.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L13.293 8L7.646 2.354a.5.5 0 0 1 0-.708z" />
+                                </g>
+                            </svg>
+                        </slot>
                     </button>
                 </div>
             </div>
@@ -170,80 +179,22 @@
     </div>
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts" generic="T">
 import { computed, onMounted, Ref, ref, useSlots, watch } from 'vue';
 import columnHeader from './column-header.vue';
 import iconCheck from './icon-check.vue';
 import iconLoader from './icon-loader.vue';
+import { Column, SortDirection, Vue3DatatableEmits, Vue3DatatableExposedMethods, Vue3DatatableProps } from './types';
 
 const slots = useSlots();
 
-export interface colDef {
-    isUnique?: boolean;
-    field?: string;
-    title?: string;
-    value?: any;
-    condition?: any;
-    type?: string; // string|date|number|bool
-    width?: string | undefined;
-    minWidth?: string | undefined;
-    maxWidth?: string | undefined;
-    hide?: boolean;
-    filter?: boolean; // column filter
-    search?: boolean; // global search
-    sort?: boolean;
-    html?: boolean;
-    cellRenderer?: [Function, string];
-    headerClass?: string;
-    cellClass?: string;
-}
-
-interface Props {
-    loading?: boolean;
-    isServerMode?: boolean;
-    skin?: string;
-    totalRows?: number;
-    rows?: Array<any>;
-    columns?: Array<colDef>;
-    hasCheckbox?: boolean;
-    search?: string;
-    columnChooser?: boolean;
-    page?: number; // default: 1
-    pageSize?: number; // default: 10
-    pageSizeOptions?: Array<number>; // default: [10, 20, 30, 50, 100]
-    showPageSize?: boolean;
-    rowClass?: [Array<string>, Function];
-    cellClass?: [Array<string>, Function];
-    sortable?: boolean;
-    sortColumn?: string;
-    sortDirection?: string;
-    columnFilter?: boolean;
-    columnFilterLang?: Record<string, string> | null;
-    pagination?: boolean;
-    showNumbers?: boolean;
-    showNumbersCount?: number;
-    showFirstPage?: boolean;
-    showLastPage?: boolean;
-    firstArrow?: string;
-    lastArrow?: string;
-    nextArrow?: string;
-    previousArrow?: string;
-    paginationInfo?: string; // default: "Showing {0} to {1} of {2} entries"
-    noDataContent?: string; // default: "No data available",
-    stickyHeader?: boolean;
-    height?: string; // default 450px - only working with sticky headers
-    stickyFirstColumn?: boolean;
-    cloneHeaderInFooter?: boolean;
-    selectRowOnClick?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Vue3DatatableProps<T>>(), {
     loading: false,
     isServerMode: false,
     skin: 'bh-table-striped bh-table-hover',
     totalRows: 0,
-    rows: () => [],
-    columns: () => [],
+    rows: () => [] as T[],
+    columns: () => [] as Column[],
     hasCheckbox: false,
     search: '',
     columnChooser: false,
@@ -251,23 +202,31 @@ const props = withDefaults(defineProps<Props>(), {
     pageSize: 10,
     pageSizeOptions: () => [10, 20, 30, 50, 100],
     showPageSize: true,
-    rowClass: <never>[],
-    cellClass: <never>[],
     cellRenderer: null,
     sortable: false,
     sortColumn: 'id',
     sortDirection: 'asc',
     columnFilter: false,
-    columnFilterLang: null,
+    columnFilterLang: () => ({
+        no_filter: 'No filter',
+        contain: 'Contain',
+        not_contain: 'Not contain',
+        equal: 'Equal',
+        not_equal: 'Not equal',
+        start_with: 'Starts with',
+        end_with: 'Ends with',
+        greater_than: 'Greater than',
+        greater_than_equal: 'Greater than or equal',
+        less_than: 'Less than',
+        less_than_equal: 'Less than or equal',
+        is_null: 'Is null',
+        is_not_null: 'Not null',
+    }),
     pagination: true,
     showNumbers: true,
     showNumbersCount: 5,
     showFirstPage: true,
     showLastPage: true,
-    firstArrow: '',
-    lastArrow: '',
-    nextArrow: '',
-    previousArrow: '',
     paginationInfo: 'Showing {0} to {1} of {2} entries',
     noDataContent: 'No data available',
     stickyHeader: false,
@@ -276,6 +235,8 @@ const props = withDefaults(defineProps<Props>(), {
     cloneHeaderInFooter: false,
     selectRowOnClick: false,
 });
+
+const emit = defineEmits<Vue3DatatableEmits<T>>();
 
 // set default columns values
 for (const item of props.columns || []) {
@@ -290,7 +251,7 @@ for (const item of props.columns || []) {
     item.condition = !type || type === 'string' ? 'contain' : 'equal';
 }
 
-const filterItems: Ref<Array<any>> = ref([]);
+const filterItems = ref<Array<any>>([]);
 const currentPage = ref(props.page);
 const currentPageSize = ref(props.pagination ? props.pageSize : props.rows?.length);
 const oldPageSize = props.pageSize;
@@ -299,7 +260,7 @@ const oldSortColumn = props.sortColumn;
 const currentSortDirection = ref(props.sortDirection);
 const oldSortDirection = props.sortDirection;
 const filterRowCount = ref(props.totalRows);
-const selected: Ref<Array<any>> = ref([]);
+const selected = ref<Array<any>>([]);
 const selectedAll: any = ref(null);
 const currentLoader = ref(props.loading);
 const currentSearch = ref(props.search);
@@ -309,14 +270,14 @@ const isOpenFilter: any = ref(null);
 
 // row click
 const timer: any = ref(null);
-let clickCount: Ref<number> = ref(0);
-const delay: Ref<number> = ref(230);
+let clickCount = ref(0);
+const delay = ref(230);
 
 onMounted(() => {
     filterRows();
 });
-const emit = defineEmits(['change', 'sortChange', 'searchChange', 'pageChange', 'pageSizeChange', 'rowSelect', 'filterChange', 'rowClick', 'rowDBClick']);
-defineExpose({
+
+defineExpose<Vue3DatatableExposedMethods<T>>({
     reset() {
         reset();
     },
@@ -349,7 +310,7 @@ const stringFormat = (template: string, ...args: any[]) => {
     });
 };
 
-const uniqueKey = computed(() => {
+const uniqueKey = computed<any>(() => {
     const col = props.columns.find((d) => d.isUnique);
 
     return col?.field || null;
@@ -577,7 +538,7 @@ watch(
     }
 );
 
-const toggleFilterMenu = (col: colDef) => {
+const toggleFilterMenu = (col: Column<T> | null) => {
     if (col) {
         if (isOpenFilter.value === col.field) {
             isOpenFilter.value = null;
@@ -654,7 +615,7 @@ watch(() => currentPageSize.value, changePageSize);
 
 // sorting
 const sortChange = (field: string) => {
-    let direction = 'asc';
+    let direction: SortDirection = 'asc';
     if (field == currentSortColumn.value) {
         if (currentSortDirection.value === 'asc') {
             direction = 'desc';
@@ -843,7 +804,7 @@ const reset = () => {
     }
 };
 const getSelectedRows = () => {
-    const rows = filterItems.value.filter((d, i) => selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i));
+    const rows: T[] = filterItems.value.filter((d, i) => selected.value.includes(uniqueKey.value ? d[uniqueKey.value as never] : i));
     return rows;
 };
 const getColumnFilters = () => {
