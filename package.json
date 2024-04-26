@@ -9,11 +9,12 @@
     ],
     "main": "./dist/vue3-datatable.umd.js",
     "module": "./dist/vue3-datatable.js",
-    "types": "./dist/main.d.ts",
+    "types": "./dist/index.d.ts",
     "exports": {
         ".": {
             "import": "./dist/vue3-datatable.js",
-            "require": "./dist/vue3-datatable.umd.js"
+            "require": "./dist/vue3-datatable.umd.js",
+            "types": "./dist/index.d.ts"
         },
         "./dist/style.css": "./dist/style.css"
     },
