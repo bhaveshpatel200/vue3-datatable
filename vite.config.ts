@@ -5,7 +5,12 @@ import dts from 'vite-plugin-dts';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [vue(), dts()],
+    plugins: [
+        vue(),
+        dts({
+            cleanVueFileName: true,
+        }),
+    ],
     build: {
         cssCodeSplit: true,
         lib: {
@@ -13,6 +18,7 @@ export default defineConfig({
                 'vue3-datatable': resolve(__dirname, 'src/components/index.ts'),
                 'vue3-datatable-css': resolve(__dirname, 'src/assets/css/tailwind.css'),
             },
+            name: 'Vue3Datatable',
         },
         rollupOptions: {
             // make sure to externalize deps that shouldn't be bundled
