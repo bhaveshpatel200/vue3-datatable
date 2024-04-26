@@ -89,14 +89,16 @@ import columnFilter from './column-filter.vue';
 import iconCheck from './icon-check.vue';
 import iconDash from './icon-dash.vue';
 import iconFilter from './icon-filter.vue';
+import { ColumHeaderEmits, ColumnHeaderProps } from './types';
 
 const selectedAll: any = ref(null);
 
-const props = defineProps(['all', 'currentSortColumn', 'currentSortDirection', 'isOpenFilter', 'isFooter', 'checkAll', 'columnFilterLang']);
+const props = defineProps<ColumnHeaderProps>();
 
 const localOpenFilter = ref(props.isOpenFilter);
 
-const emit = defineEmits(['selectAll', 'sortChange', 'filterChange', 'toggleFilterMenu']);
+const emit = defineEmits<ColumHeaderEmits>();
+
 const checkboxChange = () => {
     if (selectedAll.value) {
         selectedAll.value.indeterminate = props.checkAll !== 0 ? !props.checkAll : false;
