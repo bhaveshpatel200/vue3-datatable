@@ -15,6 +15,7 @@
         "outDir": "dist",
         "declaration": true
     },
-    "include": ["lib/**/*.ts", "lib/**/*.d.ts", "lib/**/*.tsx", "lib/**/*.vue", "src/**/*.ts", "src/**/*.d.ts", "src/components/*.vue"],
+    "include": ["src/components/**/*"],
+    "exclude": ["src/App.vue", "src/main.ts", "src/vite-env.d.ts"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }
