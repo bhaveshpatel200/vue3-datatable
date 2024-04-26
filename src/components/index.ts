@@ -1,3 +1,3 @@
 import Vue3Datatable from './custom-table.vue';
-export type { ColumnFilterLangProps } from './column-filter.vue';
+export * from './types';
 export default Vue3Datatable;
