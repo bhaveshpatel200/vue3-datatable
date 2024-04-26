@@ -69,74 +69,14 @@
     </div>
 </template>
 
-<script lang="ts">
-/**
- * Props for the column filters translation
- * 
- * @default
- * 
- * ```json
- * {
-    "no_filter":"No filter",
-    "contain":"Contain",
-    "not_contain":"Not contain",
-    "equal":"Equal",
-    "not_equal":"Not equal",
-    "start_with":"Starts with",
-    "end_with":"Ends with",
-    "greater_than":"Greater than",
-    "greater_than_equal":"Greater than or equal",
-    "less_than":"Less than",
-    "less_than_equal":"Less than or equal",
-    "is_null":"Is null",
-    "is_not_null":"Not null"
-    }
-    ```
- * You can override the default values by passing a new object to the `columnFilterLang` prop.
- * 
- * @example
- * 
- * ```json
- * {
-    "no_filter":"Aucun",
-    "contain":"Contiens",
-    "not_contain":"Ne contiens pas",
-    "equal":"Egale",
-    "not_equal":"Différent",
-    "start_with":"Commence par",
-    "end_with":"Termine par",
-    "greater_than":"Supérieur à",
-    "greater_than_equal":"Sup. ou égale à",
-    "less_than":"Inférieur à",
-    "less_than_equal":"Inf. ou égale à",
-    "is_null":"Est null",
-    "is_not_null":"Non null"
-    }
-    ```
- */
-export interface ColumnFilterLangProps {
-    no_filter?: string;
-    contain?: string;
-    not_contain?: string;
-    equal?: string;
-    not_equal?: string;
-    start_with?: string;
-    end_with?: string;
-    greater_than?: string;
-    greater_than_equal?: string;
-    less_than?: string;
-    less_than_equal?: string;
-    is_null?: string;
-    is_not_null?: string;
-}
-</script>
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, withDefaults } from 'vue';
+import type { Column, ColumnFilterEmits, ColumnFilterLangProps } from './types';
 
 const props = withDefaults(
     defineProps<{
         columnFilterLang?: ColumnFilterLangProps;
-        column: any;
+        column: Column;
     }>(),
     {
         columnFilterLang: () => ({
@@ -164,10 +104,7 @@ onMounted(() => {
     document.addEventListener('click', close);
 });
 
-const emit = defineEmits<{
-    close: [];
-    filterChange: [any];
-}>();
+const emit = defineEmits<ColumnFilterEmits>();
 
 const close = () => {
     emit('close');
