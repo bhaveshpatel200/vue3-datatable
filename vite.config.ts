@@ -7,6 +7,7 @@ import dts from 'vite-plugin-dts';
 export default defineConfig({
     plugins: [vue(), dts()],
     build: {
+        cssCodeSplit: true,
         lib: {
             entry: {
                 'vue3-datatable': resolve(__dirname, 'src/components/index.ts'),
