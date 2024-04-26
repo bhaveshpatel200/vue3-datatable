@@ -11,7 +11,7 @@
             }"
         >
             <div class="bh-checkbox">
-                <input ref="selectedAll" type="checkbox" @click.stop="emit('selectAll', $event.target.checked)" />
+                <input ref="selectedAll" type="checkbox" @click.stop="emit('selectAll', ($event.target as HTMLInputElement)?.checked)" />
                 <div>
                     <icon-check class="check" />
                     <icon-dash class="intermediate" />
@@ -59,7 +59,7 @@
                         <input v-if="col.type === 'string'" v-model.trim="col.value" type="text" class="bh-form-control" @keyup="emit('filterChange')" />
                         <input v-if="col.type === 'number'" v-model.number.trim="col.value" type="number" class="bh-form-control" @keyup="emit('filterChange')" />
                         <input v-else-if="col.type === 'date'" v-model="col.value" type="date" class="bh-form-control" @change="emit('filterChange')" />
-                        <select v-else-if="col.type === 'bool'" v-model="col.value" class="bh-form-control" @change="emit('filterChange')" @click="props.isOpenFilter = null">
+                        <select v-else-if="col.type === 'bool'" v-model="col.value" class="bh-form-control" @change="emit('filterChange')" @click="localOpenFilter = null">
                             <option :value="undefined">All</option>
                             <option :value="true">True</option>
                             <option :value="false">False</option>
@@ -70,7 +70,7 @@
                         </button>
 
                         <column-filter
-                            v-show="props.isOpenFilter === col.field"
+                            v-show="localOpenFilter === col.field"
                             :column="col"
                             :type="col.type"
                             :columnFilterLang="props.columnFilterLang"
@@ -93,6 +93,8 @@ import iconFilter from './icon-filter.vue';
 const selectedAll: any = ref(null);
 
 const props = defineProps(['all', 'currentSortColumn', 'currentSortDirection', 'isOpenFilter', 'isFooter', 'checkAll', 'columnFilterLang']);
+
+const localOpenFilter = ref(props.isOpenFilter);
 
 const emit = defineEmits(['selectAll', 'sortChange', 'filterChange', 'toggleFilterMenu']);
 const checkboxChange = () => {
