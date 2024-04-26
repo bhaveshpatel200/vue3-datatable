@@ -7,7 +7,7 @@
                 placeholder="Search..."
                 class="bh-border bh-border-solid bh-bg-white bh-p-2 bh-outline-0 bh-border-gray-200 focus:bh-border-gray-200 bh-rounded"
             />
-            <button type="button" class="btn mb-4 bh-p-2" @click="datatable.reset()">Reset</button> <br />
+            <button type="button" class="btn mb-4 bh-p-2" @click="datatable?.reset()">Reset</button> <br />
         </div>
 
         <vue3-datatable
@@ -33,19 +33,20 @@
 </template>
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
-import Vue3Datatable from './components/custom-table.vue';
+import Vue3Datatable from './components';
+import type { SortDirection, Column, Vue3DatatableChangeEvent, Vue3DatatableExposedMethods } from './components';
 import '../dist/style.css';
 
 onMounted(() => {
     getUsers();
 });
 
-const datatable: any = ref(null);
-const loading: any = ref(true);
+const datatable = ref<Vue3DatatableExposedMethods>();
+const loading = ref(true);
 const total_rows = ref(0);
-const rows: any = ref(null);
+const rows = ref<Array<any>>([]);
 const cols =
-    ref([
+    ref<Column[]>([
         { field: 'id', title: 'ID', isUnique: true, filter: false },
         { field: 'firstName', title: 'First Name' },
         { field: 'lastName', title: 'Last Name' },
@@ -56,10 +57,10 @@ const cols =
         { field: 'isActive', title: 'Active', type: 'bool' },
     ]) || [];
 
-const changeServer = (data: any) => {
+const changeServer = (data: Vue3DatatableChangeEvent) => {
     params.current_page = data.current_page;
     params.pagesize = data.pagesize;
-    params.sort_column = data.sort_column;
+    params.sort_column = data.sort_column || 'id';
     params.sort_direction = data.sort_direction;
     params.column_filters = data.column_filters;
     params.search = data.search;
@@ -67,7 +68,7 @@ const changeServer = (data: any) => {
     filterUsers();
 };
 
-const params = reactive({
+const params = reactive<Partial<Vue3DatatableChangeEvent>>({
     current_page: 1,
     pagesize: 5,
     sort_column: 'id',
@@ -76,10 +77,10 @@ const params = reactive({
     search: '',
 });
 
-let controller: any;
-let timer: any;
+let controller: AbortController | null = null;
+let timer: NodeJS.Timeout | null = null;
 const filterUsers = () => {
-    clearTimeout(timer);
+    if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
         getUsers();
     }, 300);

@@ -68,10 +68,34 @@
         </div>
     </div>
 </template>
-<script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue';
 
-const props = defineProps(['column', 'columnFilterLang']);
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, withDefaults } from 'vue';
+import type { Column, ColumnFilterEmits, ColumnFilterLangProps } from './types';
+
+const props = withDefaults(
+    defineProps<{
+        columnFilterLang?: ColumnFilterLangProps;
+        column: Column;
+    }>(),
+    {
+        columnFilterLang: () => ({
+            no_filter: 'No filter',
+            contain: 'Contain',
+            not_contain: 'Not contain',
+            equal: 'Equal',
+            not_equal: 'Not equal',
+            start_with: 'Starts with',
+            end_with: 'Ends with',
+            greater_than: 'Greater than',
+            greater_than_equal: 'Greater than or equal',
+            less_than: 'Less than',
+            less_than_equal: 'Less than or equal',
+            is_null: 'Is null',
+            is_not_null: 'Not null',
+        }),
+    }
+);
 
 onBeforeUnmount(() => {
     document.removeEventListener('click', close);
@@ -79,13 +103,14 @@ onBeforeUnmount(() => {
 onMounted(() => {
     document.addEventListener('click', close);
 });
-const emit = defineEmits(['close', 'filterChange']);
+
+const emit = defineEmits<ColumnFilterEmits>();
 
 const close = () => {
     emit('close');
 };
 
-const select = (condition: any) => {
+const select = (condition: string) => {
     props.column.condition = condition;
     if (condition === '') {
         props.column.value = '';
