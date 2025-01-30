@@ -1,12 +1,12 @@
-@tailwind base;
+/* @tailwind base; */
 @tailwind components;
 @tailwind utilities;
 
 @layer components {
     /* tables */
-    *,
-    :after,
-    :before {
+    .bh-datatable *,
+    .bh-datatable *:after,
+    .bh-datatable *:before {
         border: 0 solid transparent;
         box-sizing: border-box;
     }
@@ -27,7 +27,7 @@
     }
     .bh-table-responsive table thead tr th,
     .bh-table-responsive table tfoot tr th {
-        @apply bh-font-bold bh-align-top;
+        @apply bh-font-bold bh-align-top bh-whitespace-nowrap;
     }
     .bh-table-responsive table tbody tr {
         @apply bh-border-b bh-border-solid bh-border-blue-light;

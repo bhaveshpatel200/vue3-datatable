@@ -161,12 +161,19 @@ bower install @bhplugin/vue3-datatable --save
 | ------------------------ | ---------------------------------------------------------------------------- |
 | **reset**                | will reset all options like selected rows, filter, search, currennt page etc |
 | **getFilteredRows**      | will returns all filtered rows                                               |
+| **getVisibleRows**       | will returns all visible rows                                                |
 | **getColumnFilters**     | will return all column filters                                               |
 | **getSelectedRows**      | will returns all selected rows                                               |
 | **clearSelectedRows**    | will unselect all selected rows                                              |
 | **selectRow(index)**     | will select row with the given index (non-existent row will be ignored)      |
 | **unselectRow(index)**   | will unselect row with the given index (non-existent row will be ignored)    |
 | **isRowSelected(index)** | will return true if the row with given index is selected                     |
+
+<br/>
+
+## Changelogs
+
+[Changelogs](https://vue3-datatable-document.vercel.app/changelog)
 
 <br/>
 
