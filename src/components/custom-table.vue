@@ -633,11 +633,19 @@ const changePage = () => {
 };
 watch(() => currentPage.value, changePage);
 
+// watch page prop
+watch(
+    () => props.page,
+    (newPage) => {
+        currentPage.value = newPage;
+    }
+);
+
 // row update
 const changeRows = () => {
-    if (!props.isServerMode) {
-        currentPage.value = 1;
-    }
+    // if (!props.isServerMode) {
+    //     currentPage.value = 1;
+    // }
     selectAll(false);
     filterRows();
 };
