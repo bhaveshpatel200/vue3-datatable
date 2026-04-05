@@ -11,7 +11,7 @@
         box-sizing: border-box;
     }
     .bh-table-responsive {
-        @apply bh-overflow-auto bh-w-full bh-relative bh-rounded;
+        @apply bh-relative bh-w-full bh-overflow-auto bh-rounded;
     }
     .bh-table-responsive table {
         @apply bh-w-full bh-max-w-full !bh-border-collapse;
@@ -23,11 +23,11 @@
     .bh-table-responsive table thead tr th,
     .bh-table-responsive table tfoot tr th,
     .bh-table-responsive table tbody tr td {
-        @apply bh-text-left bh-py-3 bh-px-4;
+        @apply bh-px-4 bh-py-3 bh-text-left;
     }
     .bh-table-responsive table thead tr th,
     .bh-table-responsive table tfoot tr th {
-        @apply bh-font-bold bh-align-top bh-whitespace-nowrap;
+        @apply bh-whitespace-nowrap bh-align-top bh-font-bold;
     }
     .bh-table-responsive table tbody tr {
         @apply bh-border-b bh-border-solid bh-border-blue-light;
@@ -40,7 +40,7 @@
     }
     .bh-table-responsive table.bh-table-compact thead tr th,
     .bh-table-responsive table.bh-table-compact tbody tr td {
-        @apply bh-py-2 bh-px-3;
+        @apply bh-px-3 bh-py-2;
     }
     .bh-table-responsive table.bh-table-bordered thead tr th,
     .bh-table-responsive table.bh-table-bordered tbody tr td {
@@ -48,7 +48,7 @@
     }
 
     .bh-pagination .bh-page-item {
-        @apply bh-bg-white bh-cursor-pointer bh-grid bh-place-content-center bh-w-8 bh-h-8 bh-px-2.5 bh-py-1.5 bh-text-gray-600 hover:bh-text-white hover:bh-bg-primary bh-border bh-border-solid bh-border-black/30  hover:bh-border-primary bh-rounded-full bh-select-none bh-outline-0 hover:bh-duration-200;
+        @apply bh-grid bh-h-8 bh-w-8 bh-cursor-pointer bh-select-none bh-place-content-center bh-rounded-full bh-border bh-border-solid bh-border-black/30 bh-bg-white bh-px-2.5 bh-py-1.5 bh-text-gray-600 bh-outline-0 hover:bh-border-primary hover:bh-bg-primary hover:bh-text-white hover:bh-duration-200;
         -webkit-appearance: button;
         background-image: none;
     }
@@ -56,7 +56,7 @@
         @apply bh-pointer-events-none bh-opacity-50;
     }
     .bh-pagination .bh-page-item.bh-active {
-        @apply bh-bg-primary bh-text-white bh-border-primary;
+        @apply bh-border-primary bh-bg-primary bh-text-white;
     }
 
     .bh-table-responsive button,
@@ -65,47 +65,47 @@
     }
 
     .bh-pagination-info .bh-pagesize {
-        @apply bh-outline-0 bh-bg-white bh-box-border focus:bh-ring-1 focus:bh-ring-[#e0e6ed]/40 bh-border bh-border-solid bh-border-[#e0e6ed] bh-rounded bh-text-black bh-font-normal bh-px-2 bh-py-1.5;
+        @apply bh-box-border bh-rounded bh-border bh-border-solid bh-border-[#e0e6ed] bh-bg-white bh-px-2 bh-py-1.5 bh-font-normal bh-text-black bh-outline-0 focus:bh-ring-1 focus:bh-ring-[#e0e6ed]/40;
     }
 
     /* filter */
     .bh-table-responsive table th .bh-filter {
-        @apply bh-w-full bh-flex bh-items-center bh-mt-0.5 bh-h-[30px];
+        @apply bh-mt-0.5 bh-flex bh-h-[30px] bh-w-full bh-items-center;
     }
     .bh-table-responsive table th .bh-filter > .bh-form-control {
-        @apply bh-w-full bh-box-border bh-bg-white bh-h-full bh-min-w-[60px] bh-outline-0 focus:bh-ring-1 focus:bh-ring-[#e0e6ed]/40 bh-border bh-border-solid bh-border-[#e0e6ed] bh-text-black bh-font-normal bh-rounded-l bh-px-3 bh-py-1 bh-text-sm;
+        @apply bh-box-border bh-h-full bh-w-full bh-min-w-[60px] bh-rounded-l bh-border bh-border-solid bh-border-[#e0e6ed] bh-bg-white bh-px-3 bh-py-1 bh-text-sm bh-font-normal bh-text-black bh-outline-0 focus:bh-ring-1 focus:bh-ring-[#e0e6ed]/40;
     }
     .bh-table-responsive table th .bh-filter > select {
         @apply bh-rounded;
     }
     .bh-table-responsive table th .bh-filter > button {
-        @apply bh-shrink-0 bh-w-[30px] bh-h-[30px] bh-cursor-pointer bh-grid bh-place-content-center bh-border bh-border-solid bh-border-[#e0e6ed] bh-rounded-r bh-text-black/70 bh-bg-[#e0e6ed] hover:bh-text-black/90;
+        @apply bh-grid bh-h-[30px] bh-w-[30px] bh-shrink-0 bh-cursor-pointer bh-place-content-center bh-rounded-r bh-border bh-border-solid bh-border-[#e0e6ed] bh-bg-[#e0e6ed] bh-text-black/70 hover:bh-text-black/90;
         -webkit-appearance: button;
         background-image: none;
     }
     .bh-filter-menu button {
-        @apply bh-flex bh-bg-white bh-cursor-pointer bh-w-full bh-px-4 bh-py-1.5 bh-border bh-border-solid bh-border-transparent hover:bh-bg-gray-100 hover:bh-font-bold bh-text-left;
+        @apply bh-flex bh-w-full bh-cursor-pointer bh-border bh-border-solid bh-border-transparent bh-bg-white bh-px-4 bh-py-1.5 bh-text-left hover:bh-bg-gray-100 hover:bh-font-bold;
         -webkit-appearance: button;
         background-image: none;
     }
     .bh-filter-menu button.active {
-        @apply bh-font-bold bh-bg-gray-100;
+        @apply bh-bg-gray-100 bh-font-bold;
     }
 
     /* checkbox */
     .bh-table-responsive input[type='checkbox'] {
-        @apply bh-opacity-0 bh-absolute bh-h-5 bh-w-5;
+        @apply bh-absolute bh-h-5 bh-w-5 bh-opacity-0;
     }
     .bh-table-responsive input[type='checkbox'] + div {
-        @apply bh-bg-white bh-border bh-border-solid bh-rounded bh-border-[#e0e6ed] bh-w-5 bh-h-5 bh-grid bh-place-content-center;
+        @apply bh-grid bh-h-5 bh-w-5 bh-place-content-center bh-rounded bh-border bh-border-solid bh-border-[#e0e6ed] bh-bg-white;
     }
     .bh-table-responsive input[type='checkbox'] + div svg {
-        @apply bh-fill-current bh-hidden bh-w-3 bh-h-3 bh-text-primary bh-pointer-events-none;
+        @apply bh-pointer-events-none bh-hidden bh-h-3 bh-w-3 bh-fill-current bh-text-primary;
     }
 
     .bh-table-responsive input[type='checkbox']:checked + div,
     .bh-table-responsive input[type='checkbox']:indeterminate + div {
-        @apply bh-bg-primary bh-border-primary;
+        @apply bh-border-primary bh-bg-primary;
     }
     .bh-table-responsive input[type='checkbox']:checked + div svg.check,
     .bh-table-responsive input[type='checkbox']:indeterminate + div svg.intermediate {
@@ -114,9 +114,7 @@
 }
 
 .bh-skeleton-box {
-    @apply bh-relative bh-overflow-hidden bh-bg-gray-100 bh-w-full
-     after:bh-content-[''] after:bh-absolute after:bh-inset-0 after:-bh-translate-x-full after:bh-animate-[bhshimmer_2s_infinite]
-     after:bh-bg-[linear-gradient(90deg,rgba(0,0,0,0)_0,rgba(0,0,0,0.025)_20%,rgba(0,0,0,0.05)_50%,rgba(0,0,0,0))];
+    @apply bh-relative bh-w-full bh-overflow-hidden bh-bg-gray-100 after:bh-absolute after:bh-inset-0 after:-bh-translate-x-full after:bh-animate-[bhshimmer_2s_infinite] after:bh-bg-[linear-gradient(90deg,rgba(0,0,0,0)_0,rgba(0,0,0,0.025)_20%,rgba(0,0,0,0.05)_50%,rgba(0,0,0,0))] after:bh-content-[''];
 }
 @keyframes bhshimmer {
     100% {

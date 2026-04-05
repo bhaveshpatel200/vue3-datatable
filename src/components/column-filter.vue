@@ -1,6 +1,6 @@
 <template>
-    <div class="bh-filter-menu bh-absolute bh-z-[1] bh-bg-white bh-shadow-md bh-rounded-md bh-top-full bh-right-0 bh-w-32 bh-mt-1">
-        <div class="bh-text-[13px] bh-font-normal bh-rounded bh-overflow-hidden" @click.stop="close">
+    <div class="bh-filter-menu bh-absolute bh-right-0 bh-top-full bh-z-[1] bh-mt-1 bh-w-32 bh-rounded-md bh-bg-white bh-shadow-md">
+        <div class="bh-overflow-hidden bh-rounded bh-text-[13px] bh-font-normal" @click.stop="close">
             <button type="button" :class="{ active: props.column.condition === '' }" @click="select('')">
                 {{ (props.columnFilterLang && props.columnFilterLang['no_filter']) ?? 'No filter' }}
             </button>
@@ -70,8 +70,16 @@
 </template>
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue';
+import type { colDef, FilterCondition } from './custom-table.vue';
 
-const props = defineProps(['column', 'columnFilterLang']);
+interface ColumnFilterProps {
+    column: colDef;
+    columnFilterLang?: Record<string, string> | null;
+}
+
+const props = withDefaults(defineProps<ColumnFilterProps>(), {
+    columnFilterLang: null,
+});
 
 onBeforeUnmount(() => {
     document.removeEventListener('click', close);
@@ -79,13 +87,17 @@ onBeforeUnmount(() => {
 onMounted(() => {
     document.addEventListener('click', close);
 });
-const emit = defineEmits(['close', 'filterChange']);
+
+const emit = defineEmits<{
+    close: [];
+    filterChange: [column: colDef];
+}>();
 
 const close = () => {
     emit('close');
 };
 
-const select = (condition: any) => {
+const select = (condition: FilterCondition) => {
     props.column.condition = condition;
     if (condition === '') {
         props.column.value = '';

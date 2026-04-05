@@ -2,12 +2,12 @@
     <div class="bh-p-10">
         <div class="bh-mb-2">
             <input
-                type="text"
                 v-model="params.search"
+                type="text"
                 placeholder="Search..."
-                class="bh-border bh-border-solid bh-bg-white bh-p-2 bh-outline-0 bh-border-gray-200 focus:bh-border-gray-200 bh-rounded"
+                class="bh-rounded bh-border bh-border-solid bh-border-gray-200 bh-bg-white bh-p-2 bh-outline-0 focus:bh-border-gray-200"
             />
-            <button type="button" class="btn mb-4 bh-p-2" @click="datatable.reset()">Reset</button> <br />
+            <button type="button" class="btn mb-4 bh-p-2" @click="datatable?.reset()">Reset</button> <br />
         </div>
 
         <vue3-datatable
@@ -15,17 +15,17 @@
             :loading="loading"
             :rows="rows"
             :columns="cols"
-            :totalRows="total_rows"
-            :isServerMode="true"
+            :total-rows="total_rows"
+            :is-server-mode="true"
             :page="params.current_page"
-            :pageSize="params.pagesize"
-            :pageSizeOptions="[3, 5, 10]"
+            :page-size="params.pagesize"
+            :page-size-options="[3, 5, 10]"
             :sortable="true"
-            :sortColumn="params.sort_column"
-            :sortDirection="params.sort_direction"
+            :sort-column="params.sort_column"
+            :sort-direction="params.sort_direction"
             :search="params.search"
-            :hasCheckbox="true"
-            :columnFilter="false"
+            :has-checkbox="true"
+            :column-filter="false"
             @change="changeServer"
         >
         </vue3-datatable>
@@ -34,34 +34,33 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 import Vue3Datatable from './components/custom-table.vue';
+import type { colDef, ServerChangePayload } from './components/custom-table.vue';
 import '../dist/style.css';
 
 onMounted(() => {
     getUsers();
 });
 
-const datatable: any = ref(null);
-const loading: any = ref(true);
+const datatable = ref<InstanceType<typeof Vue3Datatable> | null>(null);
+const loading = ref(true);
 const total_rows = ref(0);
-const rows: any = ref(null);
-const cols =
-    ref([
-        { field: 'id', title: 'ID', isUnique: true, filter: false },
-        { field: 'firstName', title: 'First Name' },
-        { field: 'lastName', title: 'Last Name' },
-        { field: 'email', title: 'Email' },
-        { field: 'age', title: 'Age', type: 'number' },
-        { field: 'dob', title: 'Birthdate', type: 'date' },
-        { field: 'address.city', title: 'City' },
-        { field: 'isActive', title: 'Active', type: 'bool' },
-    ]) || [];
+const rows = ref<Array<Record<string, unknown>>>([]);
+const cols = ref<colDef[]>([
+    { field: 'id', title: 'ID', isUnique: true, filter: false },
+    { field: 'firstName', title: 'First Name' },
+    { field: 'lastName', title: 'Last Name' },
+    { field: 'email', title: 'Email' },
+    { field: 'age', title: 'Age', type: 'number' },
+    { field: 'dob', title: 'Birthdate', type: 'date' },
+    { field: 'address.city', title: 'City' },
+    { field: 'isActive', title: 'Active', type: 'bool' },
+]);
 
-const changeServer = (data: any) => {
+const changeServer = (data: ServerChangePayload) => {
     params.current_page = data.current_page;
     params.pagesize = data.pagesize;
     params.sort_column = data.sort_column;
     params.sort_direction = data.sort_direction;
-    params.column_filters = data.column_filters;
     params.search = data.search;
 
     filterUsers();
@@ -72,14 +71,15 @@ const params = reactive({
     pagesize: 5,
     sort_column: 'id',
     sort_direction: 'desc',
-    column_filters: [],
     search: '',
 });
 
-let controller: any;
-let timer: any;
+let controller: AbortController | null = null;
+let timer: ReturnType<typeof setTimeout> | null = null;
 const filterUsers = () => {
-    clearTimeout(timer);
+    if (timer) {
+        clearTimeout(timer);
+    }
     timer = setTimeout(() => {
         getUsers();
     }, 300);
@@ -98,14 +98,16 @@ const getUsers = async () => {
         const response = await fetch('https://vue3-datatable-document.vercel.app/api/user', {
             method: 'POST',
             body: JSON.stringify(params),
-            signal: signal, // Assign the signal to the fetch request
+            signal: signal,
         });
 
         const data = await response.json();
 
-        rows.value = data?.data;
-        total_rows.value = data?.meta?.total;
-    } catch {}
+        rows.value = data?.data ?? [];
+        total_rows.value = data?.meta?.total ?? 0;
+    } catch {
+        /* request aborted or failed */
+    }
 
     loading.value = false;
 };

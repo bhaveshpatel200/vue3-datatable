@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
@@ -7,10 +7,9 @@ export default defineConfig({
     plugins: [vue()],
     build: {
         lib: {
-            entry: {
-                'vue3-datatable': resolve(__dirname, 'src/components/index.ts'),
-                'vue3-datatable-css': resolve(__dirname, 'src/assets/css/tailwind.css'),
-            },
+            entry: fileURLToPath(new URL('./src/components/index.ts', import.meta.url)),
+            name: 'vue3-datatable',
+            fileName: 'vue3-datatable',
         },
         rollupOptions: {
             // make sure to externalize deps that shouldn't be bundled
