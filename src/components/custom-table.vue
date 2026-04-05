@@ -333,6 +333,9 @@ const oldColumns = JSON.parse(JSON.stringify(props.columns)) as colDef[];
 
 const isOpenFilter = ref<string | null>(null);
 
+// flag to suppress pageChange emit when page resets due to filter/search/pagesize
+let suppressPageEvent = false;
+
 // row click
 const timer = ref<ReturnType<typeof setTimeout> | null>(null);
 const clickCount = ref(0);
@@ -668,7 +671,11 @@ const changePage = () => {
     selectAll(false);
 
     if (props.isServerMode) {
-        changeForServer('page');
+        if (!suppressPageEvent) {
+            changeForServer('page');
+            emit('pageChange', currentPage.value);
+        }
+        suppressPageEvent = false;
     } else {
         filterRows();
         emit('pageChange', currentPage.value);
@@ -696,17 +703,14 @@ const changePageSize = () => {
     selectAll(false);
 
     if (props.isServerMode) {
-        // for server side paginations
-        if (currentPage.value === 1) {
-            changeForServer('pagesize', true);
-        } else {
-            currentPage.value = 1; // changeForServer method call when currentPage change
-        }
+        suppressPageEvent = true;
+        currentPage.value = 1;
+        changeForServer('pagesize', true);
     } else {
         currentPage.value = 1;
         filterRows();
-        emit('pageSizeChange', currentPageSize.value!);
     }
+    emit('pageSizeChange', currentPageSize.value!);
 };
 watch(() => currentPageSize.value, changePageSize);
 
@@ -729,9 +733,8 @@ const sortChange = (field: string | undefined) => {
 
     if (props.isServerMode) {
         changeForServer('sort');
-    } else {
-        emit('sortChange', { offset: sortOffset, limit: sortLimit, field, direction });
     }
+    emit('sortChange', { offset: sortOffset, limit: sortLimit, field, direction });
 };
 
 // checkbox
@@ -756,17 +759,14 @@ const filterChange = () => {
     selectAll(false);
 
     if (props.isServerMode) {
-        // for server side paginations
-        if (currentPage.value === 1) {
-            changeForServer('filter', true);
-        } else {
-            currentPage.value = 1; // changeForServer method call when currentPage change
-        }
+        suppressPageEvent = true;
+        currentPage.value = 1;
+        changeForServer('filter', true);
     } else {
         currentPage.value = 1;
         filterRows();
-        emit('filterChange', props.columns);
     }
+    emit('filterChange', props.columns);
 };
 
 // search
@@ -774,17 +774,14 @@ const changeSearch = () => {
     selectAll(false);
 
     if (props.isServerMode) {
-        // for server side paginations
-        if (currentPage.value === 1) {
-            changeForServer('search', true);
-        } else {
-            currentPage.value = 1; // changeForServer method call when currentPage change
-        }
+        suppressPageEvent = true;
+        currentPage.value = 1;
+        changeForServer('search', true);
     } else {
         currentPage.value = 1;
         filterRows();
-        emit('searchChange', currentSearch.value);
     }
+    emit('searchChange', currentSearch.value);
 };
 
 watch(
@@ -903,12 +900,9 @@ const reset = () => {
     currentSortDirection.value = oldSortDirection;
 
     if (props.isServerMode) {
-        // for server side paginations
-        if (currentPage.value === 1) {
-            changeForServer('reset', true);
-        } else {
-            currentPage.value = 1; // changeForServer method call when currentPage change
-        }
+        suppressPageEvent = true;
+        currentPage.value = 1;
+        changeForServer('reset', true);
     } else {
         currentPage.value = 1;
         filterRows();
