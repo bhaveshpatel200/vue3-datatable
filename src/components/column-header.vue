@@ -56,9 +56,9 @@
 
                 <template v-if="props.all.columnFilter && !props.isFooter">
                     <div v-if="col.filter" class="bh-relative bh-filter">
-                        <input v-if="col.type === 'string'" v-model.trim="col.value" type="text" class="bh-form-control" @keyup="emit('filterChange')" />
-                        <input v-else-if="col.type === 'number'" v-model.number.trim="col.value" type="number" class="bh-form-control" @keyup="emit('filterChange')" />
-                        <input v-else-if="col.type === 'date'" v-model="col.value" type="date" class="bh-form-control" @change="emit('filterChange')" />
+                        <input v-if="col.type === 'string'" v-model.trim="col.value" type="text" class="bh-form-control" @input="debouncedFilterChange" />
+                        <input v-else-if="col.type === 'number'" v-model.number.trim="col.value" type="number" class="bh-form-control" @input="debouncedFilterChange" />
+                        <input v-else-if="col.type === 'date'" v-model="col.value" type="date" class="bh-form-control" @change="onDateChange" />
                         <select v-else-if="col.type === 'bool'" v-model="col.value" class="bh-form-control" @change="emit('filterChange')" @click="emit('toggleFilterMenu', null)">
                             <option :value="undefined">All</option>
                             <option :value="true">True</option>
@@ -83,8 +83,8 @@
     </tr>
 </template>
 <script setup lang="ts">
-import { watch, ref } from 'vue';
-import type { colDef } from './custom-table.vue';
+import { watch, ref, onBeforeUnmount } from 'vue';
+import type { IColumnDefinition } from './types';
 import columnFilter from './column-filter.vue';
 import iconCheck from './icon-check.vue';
 import iconDash from './icon-dash.vue';
@@ -97,7 +97,7 @@ interface ColumnHeaderProps {
         stickyFirstColumn: boolean;
         sortable: boolean;
         columnFilter: boolean;
-        columns: colDef[];
+        columns: IColumnDefinition[];
     };
     currentSortColumn: string;
     currentSortDirection: string;
@@ -118,7 +118,7 @@ const emit = defineEmits<{
     selectAll: [checked: boolean];
     sortChange: [field: string | undefined];
     filterChange: [];
-    toggleFilterMenu: [col: colDef | null];
+    toggleFilterMenu: [col: IColumnDefinition | null];
 }>();
 
 const onSelectAll = (event: Event) => {
@@ -126,10 +126,35 @@ const onSelectAll = (event: Event) => {
     emit('selectAll', target.checked);
 };
 
+let filterTimer: ReturnType<typeof setTimeout> | null = null;
+const debouncedFilterChange = () => {
+    if (filterTimer) {
+        clearTimeout(filterTimer);
+    }
+    filterTimer = setTimeout(() => {
+        emit('filterChange');
+    }, 300);
+};
+
+const onDateChange = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    const val = input.value;
+    // only emit when date value is valid with a 4-digit year (YYYY-MM-DD)
+    if (!val || /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        debouncedFilterChange();
+    }
+};
+
+onBeforeUnmount(() => {
+    if (filterTimer) {
+        clearTimeout(filterTimer);
+    }
+});
+
 const checkboxChange = () => {
     if (selectedAll.value) {
-        selectedAll.value.indeterminate = props.checkAll !== null && props.checkAll !== false;
-        selectedAll.value.checked = !!props.checkAll;
+        selectedAll.value.indeterminate = props.checkAll === null; // some selected
+        selectedAll.value.checked = props.checkAll === true; // all selected
     }
 };
 watch(() => props.checkAll, checkboxChange);

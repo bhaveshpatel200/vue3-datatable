@@ -70,10 +70,10 @@
 </template>
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted } from 'vue';
-import type { colDef, FilterCondition } from './custom-table.vue';
+import type { IColumnDefinition, IFilterCondition } from './types';
 
 interface ColumnFilterProps {
-    column: colDef;
+    column: IColumnDefinition;
     columnFilterLang?: Record<string, string> | null;
 }
 
@@ -90,14 +90,14 @@ onMounted(() => {
 
 const emit = defineEmits<{
     close: [];
-    filterChange: [column: colDef];
+    filterChange: [column: IColumnDefinition];
 }>();
 
 const close = () => {
     emit('close');
 };
 
-const select = (condition: FilterCondition) => {
+const select = (condition: IFilterCondition) => {
     props.column.condition = condition;
     if (condition === '') {
         props.column.value = '';

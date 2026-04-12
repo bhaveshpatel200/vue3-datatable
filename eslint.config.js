@@ -29,7 +29,7 @@ export default tseslint.config(
             'vue/html-self-closing': 'off',
             'vue/max-attributes-per-line': 'off',
             'vue/singleline-html-element-content-newline': 'off',
-            'vue/no-mutating-props': 'off',
+            'vue/no-mutating-props': 'warn',
             'vue/no-v-html': 'warn',
         },
     },

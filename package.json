@@ -4,6 +4,7 @@
     "description": "Vue3 Datatable - fully customizable & easy to use datatable library",
     "private": false,
     "type": "module",
+    "sideEffects": ["**/*.css"],
     "files": [
         "dist"
     ],

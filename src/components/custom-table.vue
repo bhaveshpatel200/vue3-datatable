@@ -163,108 +163,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useSlots, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue';
 import columnHeader from './column-header.vue';
 import iconCheck from './icon-check.vue';
 import iconLoader from './icon-loader.vue';
 
 const slots = useSlots();
 
-export type ColumnType = 'string' | 'date' | 'number' | 'bool';
+import type { IColumnType, IColumnDefinition, IServerChangePayload, ISortChangePayload, IDataTableProps } from './types';
 
-export type FilterCondition =
-    | 'contain'
-    | 'not_contain'
-    | 'equal'
-    | 'not_equal'
-    | 'start_with'
-    | 'end_with'
-    | 'greater_than'
-    | 'greater_than_equal'
-    | 'less_than'
-    | 'less_than_equal'
-    | 'is_null'
-    | 'is_not_null'
-    | '';
-
-export interface colDef {
-    isUnique?: boolean;
-    field?: string;
-    title?: string;
-    value?: string | number | boolean;
-    condition?: FilterCondition;
-    type?: ColumnType;
-    width?: string;
-    minWidth?: string;
-    maxWidth?: string;
-    hide?: boolean;
-    filter?: boolean;
-    search?: boolean;
-    sort?: boolean;
-    html?: boolean;
-    cellRenderer?: ((row: Record<string, unknown>) => string) | string;
-    headerClass?: string;
-    cellClass?: string;
-}
-
-export interface ServerChangePayload {
-    current_page: number;
-    pagesize: number;
-    offset: number;
-    sort_column: string;
-    sort_direction: string;
-    search: string;
-    column_filters: colDef[];
-    change_type: string;
-}
-
-export interface SortChangePayload {
-    offset: number;
-    limit: number;
-    field: string;
-    direction: string;
-}
-
-interface Props {
-    loading?: boolean;
-    isServerMode?: boolean;
-    skin?: string;
-    totalRows?: number;
-    rows?: Array<Record<string, unknown>>;
-    columns?: Array<colDef>;
-    hasCheckbox?: boolean;
-    search?: string;
-    columnChooser?: boolean;
-    page?: number;
-    pageSize?: number;
-    pageSizeOptions?: Array<number>;
-    showPageSize?: boolean;
-    rowClass?: string | string[] | ((row: Record<string, unknown>) => string);
-    cellClass?: string | string[] | ((row: Record<string, unknown>) => string);
-    sortable?: boolean;
-    sortColumn?: string;
-    sortDirection?: string;
-    columnFilter?: boolean;
-    columnFilterLang?: Record<string, string> | null;
-    pagination?: boolean;
-    showNumbers?: boolean;
-    showNumbersCount?: number;
-    showFirstPage?: boolean;
-    showLastPage?: boolean;
-    firstArrow?: string;
-    lastArrow?: string;
-    nextArrow?: string;
-    previousArrow?: string;
-    paginationInfo?: string;
-    noDataContent?: string;
-    stickyHeader?: boolean;
-    height?: string;
-    stickyFirstColumn?: boolean;
-    cloneHeaderInFooter?: boolean;
-    selectRowOnClick?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<IDataTableProps>(), {
     loading: false,
     isServerMode: false,
     skin: 'bh-table-striped bh-table-hover',
@@ -305,7 +213,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // set default columns values
 for (const item of props.columns || []) {
-    const type = (item.type?.toLowerCase() as ColumnType) || 'string';
+    const type = (item.type?.toLowerCase() as IColumnType) || 'string';
     item.type = type;
     item.isUnique = item.isUnique !== undefined ? item.isUnique : false;
     item.hide = item.hide !== undefined ? item.hide : false;
@@ -329,7 +237,11 @@ const selected = ref<Array<string | number>>([]);
 const selectedAll = ref<boolean | null>(null);
 const currentLoader = ref(props.loading);
 const currentSearch = ref(props.search);
-const oldColumns = JSON.parse(JSON.stringify(props.columns)) as colDef[];
+const oldColumnState = props.columns.map((col) => ({
+    value: col.value,
+    condition: col.condition,
+    hide: col.hide,
+}));
 
 const isOpenFilter = ref<string | null>(null);
 
@@ -345,14 +257,20 @@ onMounted(() => {
     filterRows();
 });
 
+onBeforeUnmount(() => {
+    if (timer.value) {
+        clearTimeout(timer.value);
+    }
+});
+
 const emit = defineEmits<{
-    change: [payload: ServerChangePayload];
-    sortChange: [payload: SortChangePayload];
+    change: [payload: IServerChangePayload];
+    sortChange: [payload: ISortChangePayload];
     searchChange: [search: string];
     pageChange: [page: number];
     pageSizeChange: [pageSize: number];
     rowSelect: [rows: Array<Record<string, unknown>>];
-    filterChange: [columns: colDef[]];
+    filterChange: [columns: IColumnDefinition[]];
     rowClick: [row: Record<string, unknown>];
     rowDBClick: [row: Record<string, unknown>];
 }>();
@@ -380,7 +298,7 @@ defineExpose({
         return isRowSelected(index);
     },
     getFilteredRows() {
-        return filteredRows();
+        return filteredRows.value;
     },
     getVisibleRows() {
         return getVisibleRows();
@@ -441,7 +359,7 @@ const paging = computed(() => {
     return pages;
 });
 
-const filteredRows = () => {
+const filteredRows = computed(() => {
     let rows = props.rows || [];
 
     if (!props.isServerMode) {
@@ -609,11 +527,11 @@ const filteredRows = () => {
     }
 
     return rows;
-};
+});
 
 const filterRows = () => {
     let result: Array<Record<string, unknown>> = [];
-    const rows = filteredRows();
+    const rows = filteredRows.value;
 
     if (props.isServerMode) {
         filterRowCount.value = props.totalRows || 0;
@@ -633,7 +551,7 @@ watch(
     },
 );
 
-const toggleFilterMenu = (col: colDef | null) => {
+const toggleFilterMenu = (col: IColumnDefinition | null) => {
     if (col) {
         if (isOpenFilter.value === col.field) {
             isOpenFilter.value = null;
@@ -668,7 +586,7 @@ const nextPage = () => {
 
 // page changed
 const changePage = () => {
-    selectAll(false);
+    selectAll(false, true);
 
     if (props.isServerMode) {
         if (!suppressPageEvent) {
@@ -686,21 +604,21 @@ watch(() => currentPage.value, changePage);
 // watch page prop
 watch(
     () => props.page,
-    (newPage) => {
+    (newPage: number) => {
         currentPage.value = newPage;
     },
 );
 
 // row update
 const changeRows = () => {
-    selectAll(false);
+    selectAll(false, true);
     filterRows();
 };
 watch(() => props.rows, changeRows);
 
 // pagesize changed
 const changePageSize = () => {
-    selectAll(false);
+    selectAll(false, true);
 
     if (props.isServerMode) {
         suppressPageEvent = true;
@@ -728,7 +646,7 @@ const sortChange = (field: string | undefined) => {
     currentSortColumn.value = field;
     currentSortDirection.value = direction;
 
-    selectAll(false);
+    selectAll(false, true);
     filterRows();
 
     if (props.isServerMode) {
@@ -738,15 +656,30 @@ const sortChange = (field: string | undefined) => {
 };
 
 // checkbox
+let suppressRowSelectEmit = false;
 const checkboxChange = (value: Array<string | number>) => {
-    selectedAll.value = value.length > 0 && filterItems.value.length > 0 && value.length === filterItems.value.length;
+    if (value.length === 0) {
+        selectedAll.value = false;
+    } else if (filterItems.value.length > 0 && value.length === filterItems.value.length) {
+        selectedAll.value = true;
+    } else {
+        selectedAll.value = null; // indeterminate: some selected
+    }
+
+    if (suppressRowSelectEmit) {
+        suppressRowSelectEmit = false;
+        return;
+    }
 
     const rows = filterItems.value.filter((d, i) => selected.value.includes(uniqueKey.value ? (d[uniqueKey.value] as string | number) : i));
 
     emit('rowSelect', rows);
 };
 watch(() => selected.value, checkboxChange);
-const selectAll = (checked: boolean) => {
+const selectAll = (checked: boolean, silent = false) => {
+    if (silent) {
+        suppressRowSelectEmit = true;
+    }
     if (checked) {
         selected.value = filterItems.value.map((d, i) => (uniqueKey.value ? (d[uniqueKey.value] as string | number) : i));
     } else {
@@ -756,7 +689,7 @@ const selectAll = (checked: boolean) => {
 
 // columns filter
 const filterChange = () => {
-    selectAll(false);
+    selectAll(false, true);
 
     if (props.isServerMode) {
         suppressPageEvent = true;
@@ -771,7 +704,7 @@ const filterChange = () => {
 
 // search
 const changeSearch = () => {
-    selectAll(false);
+    selectAll(false, true);
 
     if (props.isServerMode) {
         suppressPageEvent = true;
@@ -855,7 +788,7 @@ const changeForServer = (changeType: string, isResetPage = false) => {
         currentLoader.value = true;
         setDefaultCondition();
 
-        const res: ServerChangePayload = {
+        const res: IServerChangePayload = {
             current_page: isResetPage ? 1 : currentPage.value,
             pagesize: currentPageSize.value!,
             offset: (currentPage.value - 1) * currentPageSize.value!,
@@ -890,9 +823,11 @@ const setDefaultCondition = () => {
 
 // methods
 const reset = () => {
-    selectAll(false);
+    selectAll(false, true);
     for (let i = 0; i < props.columns.length; i++) {
-        props.columns[i] = oldColumns[i];
+        props.columns[i].value = oldColumnState[i].value;
+        props.columns[i].condition = oldColumnState[i].condition;
+        props.columns[i].hide = oldColumnState[i].hide;
     }
     currentSearch.value = '';
     currentPageSize.value = oldPageSize;
