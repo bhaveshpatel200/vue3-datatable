@@ -12,43 +12,15 @@
         </div>
 
         <vue3-datatable
-            ref="datatable"
-            :loading="loading"
             :rows="rows"
             :columns="cols"
-            :total-rows="total_rows"
-            :is-server-mode="true"
-            :page="params.current_page"
-            :page-size="params.pagesize"
-            :page-size-options="[5, 10, 20, 50]"
-            :sortable="true"
-            :sort-column="params.sort_column"
-            :sort-direction="params.sort_direction"
-            :search="params.search"
-            :has-checkbox="true"
-            :column-filter="true"
-            :show-page-size="true"
-            :show-numbers="true"
-            :show-first-page="true"
-            :show-last-page="true"
-            :column-filter-lang="filterLang"
-            :select-row-on-click="true"
-            @change="changeServer"
-            @sort-change="onSortChange"
-            @page-change="onPageChange"
-            @page-size-change="onPageSizeChange"
-            @search-change="onSearchChange"
-            @filter-change="onFilterChange"
-            @row-select="onRowSelect"
-            @row-click="onRowClick"
-            @row-d-b-click="onRowDBClick"
-        >
-            <template #isActive="{ value }">
-                <span :class="value.isActive ? 'bh-text-green-600' : 'bh-text-red-600'">
-                    {{ value.isActive ? 'Active' : 'Inactive' }}
-                </span>
-            </template>
-        </vue3-datatable>
+            :loading="loading"
+            :totalRows="total_rows"
+            :isServerMode="true"
+            :pageSize="params.pagesize"
+            @pageChange="changePage"
+            @pageSizeChange="changePageSize"
+        />
     </div>
 </template>
 <script setup lang="ts">
@@ -119,35 +91,38 @@ const changeServer = (data: IServerChangeResponse) => {
 };
 
 // individual event handlers
-const onSortChange = (data: ISortChangeResponse) => {
+const sortChange = (data: ISortChangeResponse) => {
     console.log('sortChange:', data);
 };
 
-const onPageChange = (page: number) => {
-    console.log('pageChange:', page);
+const changePage = (page: number) => {
+    params.current_page = page;
+    console.log('Page changed:', page, params);
+    getUsers();
+};
+const changePageSize = (size: number) => {
+    params.pagesize = size;
+    console.log('Page size changed:', size, params);
+    getUsers();
 };
 
-const onPageSizeChange = (pageSize: number) => {
-    console.log('pageSizeChange:', pageSize);
-};
-
-const onSearchChange = (val: string) => {
+const searchChange = (val: string) => {
     console.log('searchChange:', val);
 };
 
-const onFilterChange = (columns: IColumnDefinition[]) => {
+const filterChange = (columns: IColumnDefinition[]) => {
     console.log('filterChange:', columns);
 };
 
-const onRowSelect = (selectedRows: Array<Record<string, unknown>>) => {
+const rowSelect = (selectedRows: Array<Record<string, unknown>>) => {
     console.log('rowSelect:', selectedRows.length, 'rows');
 };
 
-const onRowClick = (row: Record<string, unknown>) => {
+const rowClick = (row: Record<string, unknown>) => {
     console.log('rowClick:', row);
 };
 
-const onRowDBClick = (row: Record<string, unknown>) => {
+const rowDBClick = (row: Record<string, unknown>) => {
     console.log('rowDBClick:', row);
 };
 

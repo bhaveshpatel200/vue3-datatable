@@ -35,7 +35,7 @@ export function useFiltering(options: IUseFilteringOptions) {
             return {
                 field,
                 type,
-                condition: filterState?.condition ?? col.condition ?? (type === 'string' ? 'contain' : 'equal'),
+                condition: filterState?.condition ?? col.condition ?? (type === 'bool' ? '' : type === 'string' ? 'contain' : 'equal'),
                 value: filterState?.value ?? col.value,
                 filter: col.filter ?? true,
                 search: col.search ?? true,
@@ -63,7 +63,7 @@ export function useFiltering(options: IUseFilteringOptions) {
             const type = (col.type?.toLowerCase() as IColumnType) || 'string';
             columnFilterState.set(field, {
                 value: col.value,
-                condition: col.condition ?? (type === 'string' ? 'contain' : 'equal'),
+                condition: col.condition ?? (type === 'bool' ? '' : type === 'string' ? 'contain' : 'equal'),
             });
         });
     };
@@ -113,6 +113,12 @@ export function useFiltering(options: IUseFilteringOptions) {
         const state = columnFilterState.get(field);
         if (state) {
             state.value = value;
+            // Auto-set default condition when user types with no filter selected
+            if (value !== undefined && value !== '' && state.condition === '') {
+                const col = options.columns.value.find((c) => c.field === field);
+                const type = (col?.type?.toLowerCase() as IColumnType) || 'string';
+                state.condition = type === 'string' ? 'contain' : 'equal';
+            }
         }
     };
 

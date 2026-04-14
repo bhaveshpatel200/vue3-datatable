@@ -71,10 +71,10 @@
                             class="bh-form-control"
                             @change="onDateFilterChange(col.field!, ($event.target as HTMLInputElement).value)"
                         />
-                        <select v-else-if="col.type === 'bool'" :value="col.value" class="bh-form-control" @change="onBoolFilterChange(col.field!, ($event.target as HTMLSelectElement).value)">
-                            <option :value="undefined">All</option>
-                            <option :value="true">True</option>
-                            <option :value="false">False</option>
+                        <select v-else-if="col.type === 'bool'" :value="col.value ?? ''" class="bh-form-control" @change="onBoolFilterChange(col.field!, ($event.target as HTMLSelectElement).value)">
+                            <option value="">All</option>
+                            <option value="true">True</option>
+                            <option value="false">False</option>
                         </select>
 
                         <button v-if="col.type !== 'bool'" type="button" @click.stop="emit('toggleFilterMenu', col.field!)">

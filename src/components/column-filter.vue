@@ -1,5 +1,5 @@
 <template>
-    <div class="bh-filter-menu bh-absolute bh-right-0 bh-top-full bh-z-[1] bh-mt-1 bh-w-32 bh-rounded-md bh-bg-white bh-shadow-md">
+    <div class="bh-filter-menu bh-w-45 bh-absolute bh-right-0 bh-top-full bh-z-[1] bh-mt-1 bh-whitespace-normal bh-rounded-md bh-bg-white bh-shadow-md">
         <div class="bh-overflow-hidden bh-rounded bh-text-[13px] bh-font-normal" @click.stop="close">
             <button type="button" :class="{ active: props.column.condition === '' }" @click="select('')">
                 {{ lang('no_filter', 'No filter') }}
