@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 import { Vue3Datatable } from './components/index';
-import type { IColumnDefinition, IServerChangePayload, ISortChangePayload } from './components/index';
+import type { IColumnDefinition, IServerChangeResponse, ISortChangeResponse } from './components/index';
 import '../dist/style.css';
 
 onMounted(() => {
@@ -93,7 +93,13 @@ const filterLang: Record<string, string> = {
     is_not_null: 'Not null',
 };
 
-const params = reactive({
+const params = reactive<{
+    current_page: number;
+    pagesize: number;
+    sort_column: string;
+    sort_direction: 'asc' | 'desc';
+    search: string;
+}>({
     current_page: 1,
     pagesize: 10,
     sort_column: 'id',
@@ -102,7 +108,7 @@ const params = reactive({
 });
 
 // server-side: aggregate change handler
-const changeServer = (data: IServerChangePayload) => {
+const changeServer = (data: IServerChangeResponse) => {
     params.current_page = data.current_page;
     params.pagesize = data.pagesize;
     params.sort_column = data.sort_column;
@@ -113,7 +119,7 @@ const changeServer = (data: IServerChangePayload) => {
 };
 
 // individual event handlers
-const onSortChange = (data: ISortChangePayload) => {
+const onSortChange = (data: ISortChangeResponse) => {
     console.log('sortChange:', data);
 };
 

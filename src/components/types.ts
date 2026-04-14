@@ -174,7 +174,7 @@ export interface IColumnDefinition {
  *
  * @example
  * ```ts
- * const onServerChange = (payload: IServerChangePayload) => {
+ * const onServerChange = (payload: IServerChangeResponse) => {
  *     fetch('/api/data', {
  *         method: 'POST',
  *         body: JSON.stringify({
@@ -189,7 +189,7 @@ export interface IColumnDefinition {
  * };
  * ```
  */
-export interface IServerChangePayload {
+export interface IServerChangeResponse {
     /** Current page number (1-based). */
     current_page: number;
 
@@ -202,8 +202,8 @@ export interface IServerChangePayload {
     /** Column field name currently being sorted. */
     sort_column: string;
 
-    /** Sort direction: `'asc'` or `'desc'`. */
-    sort_direction: string;
+    /** Sort direction. */
+    sort_direction: 'asc' | 'desc';
 
     /** Current global search string. */
     search: string;
@@ -223,12 +223,12 @@ export interface IServerChangePayload {
  *
  * @example
  * ```ts
- * const onSort = (payload: ISortChangePayload) => {
+ * const onSort = (payload: ISortChangeResponse) => {
  *     console.log(`Sorted by ${payload.field} ${payload.direction}`);
  * };
  * ```
  */
-export interface ISortChangePayload {
+export interface ISortChangeResponse {
     /** Zero-based row offset at the time of sort. */
     offset: number;
 
@@ -239,7 +239,7 @@ export interface ISortChangePayload {
     field: string;
 
     /** Sort direction: `'asc'` or `'desc'`. */
-    direction: string;
+    direction: 'asc' | 'desc';
 }
 
 // ---------------------------------------------------------------------------
@@ -324,12 +324,6 @@ export interface IDataTableProps {
     search?: string;
 
     /**
-     * Enable the column chooser UI (not yet implemented — reserved for future use).
-     * @default false
-     */
-    columnChooser?: boolean;
-
-    /**
      * Current page number (1-based).
      * In server mode, used to sync the datatable's page with the parent's state.
      * @default 1
@@ -387,7 +381,7 @@ export interface IDataTableProps {
 
     /**
      * Initial sort column field name.
-     * @default 'id'
+     * @default ''
      */
     sortColumn?: string;
 
@@ -395,7 +389,7 @@ export interface IDataTableProps {
      * Initial sort direction.
      * @default 'asc'
      */
-    sortDirection?: string;
+    sortDirection?: 'asc' | 'desc';
 
     /**
      * Enable per-column filter inputs below each column header.
@@ -451,30 +445,6 @@ export interface IDataTableProps {
      * @default true
      */
     showLastPage?: boolean;
-
-    /**
-     * Custom HTML for the "first page" button. Replaces the default SVG arrow icon.
-     * @default ''
-     */
-    firstArrow?: string;
-
-    /**
-     * Custom HTML for the "last page" button.
-     * @default ''
-     */
-    lastArrow?: string;
-
-    /**
-     * Custom HTML for the "next page" button.
-     * @default ''
-     */
-    nextArrow?: string;
-
-    /**
-     * Custom HTML for the "previous page" button.
-     * @default ''
-     */
-    previousArrow?: string;
 
     /**
      * Template string for pagination info text.

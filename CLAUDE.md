@@ -19,28 +19,46 @@ No test runner is configured.
 
 ## Architecture
 
-All source lives in `src/components/`. The library exports a single component `Vue3Datatable` plus typed interfaces.
+The library exports a single component `Vue3Datatable` plus typed interfaces from `src/components/index.ts`.
 
-- **`types.ts`** — All public type definitions (`IColumnDefinition`, `IDataTableProps`, `IServerChangePayload`, etc.). All interfaces use `I` prefix convention with JSDoc descriptions.
-- **`custom-table.vue`** — The main datatable component containing core logic: pagination, sorting, filtering, row selection, skeleton loading, sticky columns
-- **`column-header.vue`** — Table header row with sort indicators, filter inputs (debounced for text/number), and filter condition dropdowns
-- **`column-filter.vue`** — Per-column filter popup with type-aware operators (string/number/date/bool)
-- **`icon-*.vue`** — Small SVG icon components (check, dash, filter, loader)
-- **`index.ts`** — Entry point, exports `Vue3Datatable` (default + named) and all `I`-prefixed types from `types.ts`
+### Core Component
 
-`src/App.vue` and `src/main.ts` exist solely for the dev server demo and are not part of the library output.
+**`custom-table.vue`** (~200 lines script) — The main datatable component. Contains only template + composable wiring + `defineExpose`. All logic is in composables.
+
+### Composables (`src/components/composables/`)
+
+Each composable owns a single concern and returns reactive state + methods:
+
+- **`usePagination.ts`** — `currentPage`, `currentPageSize`, `maxPage`, `offset`, `limit`, `paging`, navigation methods
+- **`useSorting.ts`** — `currentSortColumn`, `currentSortDirection`, `toggleSort`, `resetSort`. Uses `'asc' | 'desc'` literal type.
+- **`useFiltering.ts`** — `normalizedColumns` (computed, never mutates props), `columnFilterState` (reactive Map), `filteredRows` (computed + cached), `currentSearch`, filter value/condition setters, `getColumnsWithFilterState()` for event payloads
+- **`useSelection.ts`** — `selected`, `selectedAll` (three-state: `true`/`null`/`false`), `selectAll`, `selectRow`, `unselectRow`, emit suppression via `shouldSuppressEmit()`
+- **`useRowClick.ts`** — Native `@click`/`@dblclick` handler (no artificial timer delay)
+
+### Supporting Files
+
+- **`types.ts`** — All public types with `I` prefix and JSDoc: `IColumnDefinition`, `IColumnType`, `IFilterCondition`, `IServerChangeResponse`, `ISortChangeResponse`, `IDataTableProps`
+- **`utils.ts`** — Pure helpers: `cellValue`, `dateFormat`, `stringFormat`
+- **`filter-strategies.ts`** — Strategy pattern mapping column type × filter condition to predicate functions. Exports `INormalizedColumn` interface, `applyColumnFilters`, `applyGlobalSearch`, `applySorting`
+- **`column-header.vue`** — Header row with flat individual props (no `:all="props"` pattern). Emits `filterValueChange`/`conditionChange` instead of mutating props. Debounced text/number filter inputs (300ms).
+- **`column-filter.vue`** — Filter condition dropdown menu. Emits `conditionChange(field, condition)` — zero prop mutations.
+- **`icon-*.vue`** — SVG icon components (check, dash, filter, loader)
+
+### Key Design Decisions
+
+- **Zero prop mutations** — `vue/no-mutating-props` is set to `error`. Column filter state lives in `columnFilterState` reactive Map inside `useFiltering`, never on the prop objects.
+- **`normalizedColumns` computed** — Applies defaults (type, filter, search, sort, hide, condition) immutably. Merges current filter state. Used everywhere instead of raw `props.columns`.
+- **Filter strategy pattern** — Type-safe lookup table in `filter-strategies.ts` replaces if-else chains. Each column type has a Record of condition → predicate function.
+- **Pagination arrow slots** — `#firstArrow`, `#previousArrow`, `#nextArrow`, `#lastArrow` slots (not `v-html` props).
+- **`#noData` slot** — Custom empty state alongside `noDataContent` text prop.
 
 ## Type System
 
-All types are defined in `src/components/types.ts` and use the `I` prefix convention:
-- `IColumnDefinition` — column config (field, type, filter, sort, cellRenderer, etc.)
-- `IColumnType` — `'string' | 'date' | 'number' | 'bool'`
-- `IFilterCondition` — union of all filter operator strings
-- `IServerChangePayload` — `@change` event payload in server mode
-- `ISortChangePayload` — `@sortChange` event payload
-- `IDataTableProps` — full props interface with JSDoc on every property
+All types in `src/components/types.ts` use `I` prefix. Internal components import from `./types`.
 
-Internal components import types from `./types`, not from `./custom-table.vue`.
+- `type` for unions/primitives: `IColumnType`, `IFilterCondition`
+- `interface` for object shapes: `IColumnDefinition`, `IDataTableProps`, `IServerChangeResponse`, `ISortChangeResponse`
+- `sortDirection` uses `'asc' | 'desc'` literal union (not `string`) across props, composables, and event payloads
 
 ## Build Output
 
@@ -53,25 +71,25 @@ Vue is externalized — not bundled into the output.
 
 ## Styling
 
-Tailwind CSS with a **`bh-` prefix** on all utility classes (configured in `tailwind.config.cjs`) to avoid polluting consumers' global styles. Tailwind preflight is disabled. Custom theme colors: primary (`#4361ee`), black (`#0e1726`), blue-light (`#f6f7fa`).
+Tailwind CSS with a **`bh-` prefix** on all utility classes (configured in `tailwind.config.cjs`). Tailwind preflight is disabled. Custom theme colors: primary (`#4361ee`), black (`#0e1726`), blue-light (`#f6f7fa`).
 
-**Important:** When adding new Tailwind classes in templates, run `npm run tailwind:build` (or the full `npm run cb`) to regenerate `dist/style.css`. Classes not in the CSS output won't render.
+**Important:** When adding new Tailwind classes in templates, run `npm run cb` to regenerate `dist/style.css`. Classes not in the CSS output won't render.
 
 ## Code Style
 
-- Prettier: single quotes, semicolons, 200 char print width, 4-space tabs, `prettier-plugin-tailwindcss` (`.prettierrc`)
-- ESLint: flat config with `typescript-eslint` + `eslint-plugin-vue` (`eslint.config.js`)
+- Prettier: single quotes, semicolons, 200 char print width, 4-space tabs, `prettier-plugin-tailwindcss`
+- ESLint: flat config with `typescript-eslint` + `eslint-plugin-vue`, `vue/no-mutating-props: 'error'`
 - TypeScript strict mode with `moduleResolution: "Bundler"` and `jsx: "preserve"`
 - Vue 3 Composition API with `<script setup lang="ts">`
-- `vue/no-mutating-props` is set to `warn` (not error) — the column filter pattern mutates props by design
 
 ## Event System
 
-The datatable emits both an aggregate `@change` event (server mode) AND individual events (`@sortChange`, `@pageChange`, `@filterChange`, `@searchChange`, `@pageSizeChange`). Individual events fire in both client and server mode. Key rules:
-- Sort does NOT reset pagination to page 1
+The datatable emits both an aggregate `@change` event (server mode) AND individual events. Individual events fire in both client and server mode. Rules:
+- Sort does NOT reset page
 - Filter/search/pagesize resets to page 1 but only emits the specific event (not `@pageChange`)
-- `@rowSelect` only fires from user interactions, not from internal state resets (controlled via `suppressRowSelectEmit` flag)
+- `@rowSelect` only fires from user interactions (controlled via `shouldSuppressEmit()` in useSelection)
+- Server mode sets `currentLoader = true` immediately when emitting `@change`
 
-## Selection Checkbox States
+## Selection Checkbox
 
-The header select-all checkbox uses three states: `true` (all page rows), `null` (some — shows indeterminate dash), `false` (none). Never use boolean-only for this.
+Three states: `true` (all page rows), `null` (some — indeterminate dash), `false` (none). Never boolean-only.
