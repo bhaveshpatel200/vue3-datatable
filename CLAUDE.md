@@ -47,7 +47,8 @@ Each composable owns a single concern and returns reactive state + methods:
 ### Key Design Decisions
 
 - **Zero prop mutations** — `vue/no-mutating-props` is set to `error`. Column filter state lives in `columnFilterState` reactive Map inside `useFiltering`, never on the prop objects.
-- **`normalizedColumns` computed** — Applies defaults (type, filter, search, sort, hide, condition) immutably. Merges current filter state. Used everywhere instead of raw `props.columns`.
+- **`normalizedColumns` computed** — Applies defaults (type, filter, search, sort, hide, condition) immutably. Merges current filter state. Used everywhere instead of raw `props.columns`. Default condition: `'contain'` for string, `'equal'` for number/date, `''` (no filter) for bool.
+- **Auto-set filter condition** — When user types in a filter input with condition `''` (no filter), `setFilterValue` auto-sets condition to default (`contain`/`equal`) for that column type.
 - **Filter strategy pattern** — Type-safe lookup table in `filter-strategies.ts` replaces if-else chains. Each column type has a Record of condition → predicate function.
 - **Pagination arrow slots** — `#firstArrow`, `#previousArrow`, `#nextArrow`, `#lastArrow` slots (not `v-html` props).
 - **`#noData` slot** — Custom empty state alongside `noDataContent` text prop.
@@ -84,11 +85,27 @@ Tailwind CSS with a **`bh-` prefix** on all utility classes (configured in `tail
 
 ## Event System
 
-The datatable emits both an aggregate `@change` event (server mode) AND individual events. Individual events fire in both client and server mode. Rules:
+The datatable emits `@changeServer` (server mode aggregate) and individual events. Individual events fire in both client and server mode.
+
+| Event | Payload | When |
+|-------|---------|------|
+| `@changeServer` | `IServerChangeResponse` | Server mode only — any state change (page, sort, filter, search, pagesize, reset) |
+| `@pageChange` | `number` | User clicks pagination buttons only. Silent on programmatic resets. |
+| `@pageSizeChange` | `number` | Page size dropdown changed |
+| `@sortChange` | `ISortChangeResponse` | Column sort applied. Does NOT reset page. |
+| `@filterChange` | `IColumnDefinition[]` | Column filter value or condition changed |
+| `@searchChange` | `string` | Global search prop changed |
+| `@rowSelect` | `Record[]` | User interaction only (controlled via `shouldSuppressEmit()` in useSelection) |
+| `@rowClick` | `Record` | Row single click |
+| `@rowDBClick` | `Record` | Row double click |
+| `@reset` | — | `reset()` called. Only event emitted during reset — all other events suppressed via `isResetting` flag. |
+
+Rules:
 - Sort does NOT reset page
 - Filter/search/pagesize resets to page 1 but only emits the specific event (not `@pageChange`)
-- `@rowSelect` only fires from user interactions (controlled via `shouldSuppressEmit()` in useSelection)
-- Server mode sets `currentLoader = true` immediately when emitting `@change`
+- `@pageChange` fires only from `onUserPageChange()` — explicit user pagination clicks. No watcher on `currentPage`.
+- `@reset` is the only individual event during reset. `@changeServer` also emits in server mode. All other events (`@searchChange`, `@pageSizeChange`, etc.) suppressed via `isResetting` flag + `nextTick`.
+- Server mode sets `currentLoader = true` immediately when emitting `@changeServer`
 
 ## Selection Checkbox
 

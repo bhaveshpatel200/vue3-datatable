@@ -7,19 +7,36 @@
                 placeholder="Search..."
                 class="bh-rounded bh-border bh-border-solid bh-border-gray-200 bh-bg-white bh-p-2 bh-outline-0 focus:bh-border-gray-200"
             />
-            <button type="button" class="bh-rounded bh-bg-primary bh-px-4 bh-py-2 bh-text-white" @click="datatable?.reset()">Reset</button>
+            <button type="button" class="bh-rounded bh-bg-primary bh-px-4 bh-py-2 bh-text-white" @click="reset">Reset</button>
             <button type="button" class="bh-rounded bh-border bh-border-solid bh-border-gray-200 bh-px-4 bh-py-2" @click="logSelectedRows">Get Selected</button>
         </div>
 
         <vue3-datatable
+            ref="datatable"
             :rows="rows"
             :columns="cols"
             :loading="loading"
-            :totalRows="total_rows"
-            :isServerMode="true"
-            :pageSize="params.pagesize"
-            @pageChange="changePage"
-            @pageSizeChange="changePageSize"
+            :total-rows="total_rows"
+            :is-server-mode="true"
+            :page="params.current_page"
+            :page-size="params.pagesize"
+            :sortable="true"
+            :column-filter="true"
+            :has-checkbox="true"
+            :search="params.search"
+            :sort-column="params.sort_column"
+            :sort-direction="params.sort_direction"
+            :column-filter-lang="filterLang"
+            @search-change="searchChange"
+            @change-server="changeServer"
+            @sort-change="sortChange"
+            @page-change="changePage"
+            @page-size-change="changePageSize"
+            @filter-change="filterChange"
+            @row-select="rowSelect"
+            @row-click="rowClick"
+            @row-d-b-click="rowDBClick"
+            @reset="onReset"
         />
     </div>
 </template>
@@ -65,53 +82,61 @@ const filterLang: Record<string, string> = {
     is_not_null: 'Not null',
 };
 
-const params = reactive<{
-    current_page: number;
-    pagesize: number;
-    sort_column: string;
-    sort_direction: 'asc' | 'desc';
-    search: string;
-}>({
-    current_page: 1,
+const defaultParams = {
+    current_page: 5,
     pagesize: 10,
     sort_column: 'id',
-    sort_direction: 'desc',
+    sort_direction: 'desc' as 'asc' | 'desc',
     search: '',
-});
-
-// server-side: aggregate change handler
-const changeServer = (data: IServerChangeResponse) => {
-    params.current_page = data.current_page;
-    params.pagesize = data.pagesize;
-    params.sort_column = data.sort_column;
-    params.sort_direction = data.sort_direction;
-    params.search = data.search;
-
-    filterUsers();
+    column_filters: [] as IColumnDefinition[],
 };
 
-// individual event handlers
+const params = reactive({ ...defaultParams });
+
+// server-side: aggregate change handler — single source of truth for fetching
+const changeServer = (data: IServerChangeResponse) => {
+    console.log('changeServer:', data);
+};
+
+// individual event handlers (logging only — @change handles fetch)
 const sortChange = (data: ISortChangeResponse) => {
     console.log('sortChange:', data);
+    params.sort_column = data.field;
+    params.sort_direction = data.direction;
+    getUsers();
 };
 
 const changePage = (page: number) => {
+    console.log('pageChange:', page);
     params.current_page = page;
-    console.log('Page changed:', page, params);
     getUsers();
 };
+
 const changePageSize = (size: number) => {
+    console.log('pageSizeChange:', size);
     params.pagesize = size;
-    console.log('Page size changed:', size, params);
+    params.current_page = 1;
     getUsers();
 };
 
 const searchChange = (val: string) => {
     console.log('searchChange:', val);
+    params.search = val;
+    params.current_page = 1;
+
+    if (timer) {
+        clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+        getUsers();
+    }, 300);
 };
 
 const filterChange = (columns: IColumnDefinition[]) => {
     console.log('filterChange:', columns);
+    params.column_filters = columns;
+    params.current_page = 1;
+    getUsers();
 };
 
 const rowSelect = (selectedRows: Array<Record<string, unknown>>) => {
@@ -131,17 +156,19 @@ const logSelectedRows = () => {
     console.log('Selected rows:', selected);
 };
 
+const reset = () => {
+    Object.assign(params, { ...defaultParams });
+    datatable.value?.reset();
+};
+
+const onReset = () => {
+    console.log('reset');
+    getUsers();
+};
+
 // debounced fetch
 let controller: AbortController | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
-const filterUsers = () => {
-    if (timer) {
-        clearTimeout(timer);
-    }
-    timer = setTimeout(() => {
-        getUsers();
-    }, 300);
-};
 
 const getUsers = async () => {
     if (controller) {
@@ -153,7 +180,8 @@ const getUsers = async () => {
     try {
         loading.value = true;
 
-        const response = await fetch('https://vue3-datatable-document.vercel.app/api/user', {
+        // const response = await fetch('https://vue3-datatable-document.vercel.app/api/user', {
+        const response = await fetch('http://localhost:3000/api/user', {
             method: 'POST',
             body: JSON.stringify(params),
             signal: signal,

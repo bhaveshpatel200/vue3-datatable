@@ -123,7 +123,7 @@
                 </div>
 
                 <div class="bh-pagination-number bh-inline-flex bh-items-center bh-space-x-1 sm:bh-ml-auto">
-                    <button v-if="props.showFirstPage" type="button" class="bh-page-item first-page" :class="{ disabled: currentPage <= 1 }" @click="currentPage = 1">
+                    <button v-if="props.showFirstPage" type="button" class="bh-page-item first-page" :class="{ disabled: currentPage <= 1 }" @click="onUserPageChange(1)">
                         <slot name="firstArrow">
                             <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                                 <g fill="currentColor" fill-rule="evenodd">
@@ -133,7 +133,7 @@
                             </svg>
                         </slot>
                     </button>
-                    <button type="button" class="bh-page-item previous-page" :class="{ disabled: currentPage <= 1 }" @click="previousPage">
+                    <button type="button" class="bh-page-item previous-page" :class="{ disabled: currentPage <= 1 }" @click="onUserPageChange(currentPage - 1)">
                         <slot name="previousArrow">
                             <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                                 <path
@@ -155,13 +155,13 @@
                                 disabled: currentPage === page,
                                 'bh-active': page === currentPage,
                             }"
-                            @click="movePage(page)"
+                            @click="onUserPageChange(page)"
                         >
                             {{ page }}
                         </button>
                     </template>
 
-                    <button type="button" class="bh-page-item next-page" :class="{ disabled: currentPage >= maxPage }" @click="nextPage">
+                    <button type="button" class="bh-page-item next-page" :class="{ disabled: currentPage >= maxPage }" @click="onUserPageChange(currentPage + 1)">
                         <slot name="nextArrow">
                             <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                                 <path
@@ -173,7 +173,7 @@
                         </slot>
                     </button>
 
-                    <button v-if="props.showLastPage" type="button" class="bh-page-item last-page" :class="{ disabled: currentPage >= maxPage }" @click="currentPage = maxPage">
+                    <button v-if="props.showLastPage" type="button" class="bh-page-item last-page" :class="{ disabled: currentPage >= maxPage }" @click="onUserPageChange(maxPage)">
                         <slot name="lastArrow">
                             <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16">
                                 <g fill="currentColor" fill-rule="evenodd">
@@ -190,7 +190,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, toRef, useSlots, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, toRef, useSlots, watch } from 'vue';
 import columnHeader from './column-header.vue';
 import iconCheck from './icon-check.vue';
 import iconLoader from './icon-loader.vue';
@@ -240,7 +240,7 @@ const props = withDefaults(defineProps<IDataTableProps>(), {
 });
 
 const emit = defineEmits<{
-    change: [payload: IServerChangeResponse];
+    changeServer: [payload: IServerChangeResponse];
     sortChange: [payload: ISortChangeResponse];
     searchChange: [search: string];
     pageChange: [page: number];
@@ -249,6 +249,7 @@ const emit = defineEmits<{
     filterChange: [columns: IColumnDefinition[]];
     rowClick: [row: Record<string, unknown>];
     rowDBClick: [row: Record<string, unknown>];
+    reset: [];
 }>();
 
 // ── Composables ──────────────────────────────────────────────────────────────
@@ -270,7 +271,7 @@ const { currentSearch, isOpenFilter, normalizedColumns, filteredRows, filterRowC
     totalRows: toRef(props, 'totalRows'),
 });
 
-const { currentPage, currentPageSize, initialPageSize, maxPage, offset, limit, paging, previousPage, nextPage, movePage } = usePagination({
+const { currentPage, currentPageSize, initialPageSize, maxPage, offset, limit, paging } = usePagination({
     page: toRef(props, 'page'),
     pageSize: toRef(props, 'pageSize'),
     showNumbersCount: toRef(props, 'showNumbersCount'),
@@ -318,7 +319,7 @@ const { handleClick, handleDblClick } = useRowClick(
 
 // ── Watchers & event handlers ────────────────────────────────────────────────
 
-let suppressPageEvent = false;
+let isResetting = false;
 
 // Selection watcher — emit rowSelect only from user interactions
 watch(selected, () => {
@@ -326,19 +327,18 @@ watch(selected, () => {
     emit('rowSelect', getSelectedRows());
 });
 
-// Page change
-watch(currentPage, () => {
+// Explicit page change handler — ONLY called by pagination buttons
+// Programmatic resets (filter/search/pagesize) set currentPage.value directly = silent, no event
+const onUserPageChange = (page: number) => {
+    const target = Math.max(1, Math.min(page, maxPage.value));
+    if (target === currentPage.value) return;
+    currentPage.value = target;
     selectAll(false, true);
     if (props.isServerMode) {
-        if (!suppressPageEvent) {
-            emitServerChange('page');
-            emit('pageChange', currentPage.value);
-        }
-        suppressPageEvent = false;
-    } else {
-        emit('pageChange', currentPage.value);
+        emitServerChange('page');
     }
-});
+    emit('pageChange', currentPage.value);
+};
 
 // Row data updated
 watch(
@@ -350,9 +350,9 @@ watch(
 
 // Page size change
 watch(currentPageSize, () => {
+    if (isResetting) return;
     selectAll(false, true);
     if (props.isServerMode) {
-        suppressPageEvent = true;
         currentPage.value = 1;
         emitServerChange('pagesize', true);
     } else {
@@ -394,7 +394,6 @@ const onConditionChange = (field: string, condition: IFilterCondition) => {
 const triggerFilterChange = () => {
     selectAll(false, true);
     if (props.isServerMode) {
-        suppressPageEvent = true;
         currentPage.value = 1;
         emitServerChange('filter', true);
     } else {
@@ -411,10 +410,10 @@ const onToggleFilterMenu = (field: string) => {
 watch(
     () => props.search,
     () => {
+        if (isResetting) return;
         currentSearch.value = props.search;
         selectAll(false, true);
         if (props.isServerMode) {
-            suppressPageEvent = true;
             currentPage.value = 1;
             emitServerChange('search', true);
         } else {
@@ -440,24 +439,25 @@ const emitServerChange = (changeType: string, isResetPage = false) => {
         column_filters: getColumnsWithFilterState(),
         change_type: changeType,
     };
-    emit('change', res);
+    emit('changeServer', res);
 };
 
 // ── Reset ────────────────────────────────────────────────────────────────────
 
 const reset = () => {
+    isResetting = true;
     selectAll(false, true);
     resetFilters();
     resetSort();
     currentPageSize.value = initialPageSize;
-
+    currentPage.value = 1;
     if (props.isServerMode) {
-        suppressPageEvent = true;
-        currentPage.value = 1;
         emitServerChange('reset', true);
-    } else {
-        currentPage.value = 1;
     }
+    emit('reset');
+    nextTick(() => {
+        isResetting = false;
+    });
 };
 
 // ── Exposed methods ──────────────────────────────────────────────────────────
