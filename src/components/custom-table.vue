@@ -190,7 +190,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, toRef, useSlots, watch } from 'vue';
+import { computed, nextTick, ref, toRef, useSlots, watch } from 'vue';
 import columnHeader from './column-header.vue';
 import iconCheck from './icon-check.vue';
 import iconLoader from './icon-loader.vue';
@@ -461,10 +461,6 @@ const reset = () => {
 };
 
 // ── Exposed methods ──────────────────────────────────────────────────────────
-
-onMounted(() => {
-    // Initial load — no action needed, computed values handle it
-});
 
 defineExpose({
     reset,

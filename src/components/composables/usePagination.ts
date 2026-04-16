@@ -54,24 +54,6 @@ export function usePagination(options: IUsePaginationOptions) {
         return Array.from({ length: endPage + 1 - startPage }, (_, i) => startPage + i);
     });
 
-    const previousPage = () => {
-        if (currentPage.value <= 1) return;
-        currentPage.value--;
-    };
-
-    const nextPage = () => {
-        if (currentPage.value >= maxPage.value) return;
-        currentPage.value++;
-    };
-
-    const movePage = (page: number) => {
-        currentPage.value = page;
-    };
-
-    const resetPage = () => {
-        currentPage.value = 1;
-    };
-
     return {
         currentPage,
         currentPageSize,
@@ -80,9 +62,5 @@ export function usePagination(options: IUsePaginationOptions) {
         offset,
         limit,
         paging,
-        previousPage,
-        nextPage,
-        movePage,
-        resetPage,
     };
 }
