@@ -30,3 +30,19 @@ export const stringFormat = (template: string, ...args: Array<string | number>):
         return idx < args.length ? String(args[idx]) : match;
     });
 };
+
+/**
+ * Lightweight HTML sanitizer — strips dangerous elements and attributes.
+ * SSR-safe (pure string operations, no DOM APIs).
+ *
+ * Strips: script, style, iframe, object, embed, form tags + content.
+ * Strips: on* event attributes, javascript: URIs.
+ */
+export const sanitizeHtml = (html: string): string => {
+    return html
+        .replace(/<script[\s\S]*?<\/script\s*>/gi, '')
+        .replace(/<style[\s\S]*?<\/style\s*>/gi, '')
+        .replace(/<\/?(?:iframe|object|embed|form)\b[^>]*>/gi, '')
+        .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
+        .replace(/(href|src|action)\s*=\s*["']?\s*javascript\s*:/gi, '$1="');
+};

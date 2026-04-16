@@ -58,7 +58,8 @@
                                     <template v-if="col.field && slots[col.field]">
                                         <slot :name="col.field" :value="item"></slot>
                                     </template>
-                                    <div v-else-if="col.cellRenderer && typeof col.cellRenderer === 'function'" v-html="col.cellRenderer(item)"></div>
+                                    <!-- eslint-disable-next-line vue/no-v-html -->
+                                    <div v-else-if="col.cellRenderer && typeof col.cellRenderer === 'function'" v-html="sanitizeHtml(col.cellRenderer(item))"></div>
                                     <template v-else>
                                         {{ cellValue(item, col.field) }}
                                     </template>
@@ -196,7 +197,7 @@ import iconCheck from './icon-check.vue';
 import iconLoader from './icon-loader.vue';
 
 import type { IColumnDefinition, IFilterCondition, IServerChangeResponse, ISortChangeResponse, IDataTableProps } from './types';
-import { cellValue, stringFormat } from './utils';
+import { cellValue, sanitizeHtml, stringFormat } from './utils';
 import { usePagination } from './composables/usePagination';
 import { useSorting } from './composables/useSorting';
 import { useFiltering } from './composables/useFiltering';
