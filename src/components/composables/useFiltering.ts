@@ -145,9 +145,11 @@ export function useFiltering(options: IUseFilteringOptions) {
     const getColumnsWithFilterState = (): IColumnDefinition[] => {
         return options.columns.value.map((col) => {
             const field = col.field ?? '';
+            const type = (col.type?.toLowerCase() as IColumnType) || 'string';
             const state = columnFilterState.get(field);
             return {
                 ...col,
+                type,
                 value: state?.value,
                 condition: state?.condition,
             };

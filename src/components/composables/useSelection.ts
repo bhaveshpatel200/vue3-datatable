@@ -1,4 +1,4 @@
-import { computed, ref, watch, type Ref } from 'vue';
+import { computed, ref, type Ref } from 'vue';
 import { cellValue } from '../utils';
 
 interface IUseSelectionOptions {
@@ -8,8 +8,6 @@ interface IUseSelectionOptions {
 
 export function useSelection(options: IUseSelectionOptions) {
     const selected = ref<Array<string | number>>([]);
-    const selectedAll = ref<boolean | null>(false);
-    let suppressEmit = false;
 
     const getRowKey = (row: Record<string, unknown>, index: number): string | number => {
         if (options.uniqueKey.value) {
@@ -19,24 +17,27 @@ export function useSelection(options: IUseSelectionOptions) {
         return index;
     };
 
-    // Three-state checkbox: true (all), null (some/indeterminate), false (none)
-    watch(selected, (value) => {
-        if (value.length === 0) {
-            selectedAll.value = false;
-        } else if (options.filterItems.value.length > 0 && value.length === options.filterItems.value.length) {
-            selectedAll.value = true;
-        } else {
-            selectedAll.value = null;
-        }
+    // Three-state checkbox computed reactively from selected + filterItems
+    // Reacts to BOTH selection changes AND visible-row changes (page/filter/sort)
+    const selectedAll = computed<boolean | null>(() => {
+        const items = options.filterItems.value;
+        if (selected.value.length === 0 || items.length === 0) return false;
+        const allSelected = items.every((d, i) => selected.value.includes(getRowKey(d, i)));
+        if (allSelected) return true;
+        const anySelected = items.some((d, i) => selected.value.includes(getRowKey(d, i)));
+        return anySelected ? null : false;
     });
 
-    const selectAll = (checked: boolean, silent = false) => {
-        if (silent) suppressEmit = true;
+    const selectAll = (checked: boolean) => {
         if (checked) {
             selected.value = options.filterItems.value.map((d, i) => getRowKey(d, i));
         } else {
             selected.value = [];
         }
+    };
+
+    const clearSelection = () => {
+        selected.value = [];
     };
 
     const selectRow = (index: number) => {
@@ -58,6 +59,11 @@ export function useSelection(options: IUseSelectionOptions) {
         }
     };
 
+    const toggleRow = (index: number) => {
+        if (isRowSelected(index)) unselectRow(index);
+        else selectRow(index);
+    };
+
     const isRowSelected = (index: number): boolean => {
         const row = options.filterItems.value[index];
         if (row) {
@@ -70,30 +76,18 @@ export function useSelection(options: IUseSelectionOptions) {
         return options.filterItems.value.filter((d, i) => selected.value.includes(getRowKey(d, i)));
     };
 
-    const clearSelectedRows = () => {
-        selected.value = [];
-    };
-
-    /** Check if the emit should be suppressed (returns true once, then resets). */
-    const shouldSuppressEmit = (): boolean => {
-        if (suppressEmit) {
-            suppressEmit = false;
-            return true;
-        }
-        return false;
-    };
-
     return {
         selected,
         selectedAll,
         getRowKey,
         selectAll,
+        clearSelection,
         selectRow,
         unselectRow,
+        toggleRow,
         isRowSelected,
         getSelectedRows,
-        clearSelectedRows,
-        shouldSuppressEmit,
+        clearSelectedRows: clearSelection,
     };
 }
 

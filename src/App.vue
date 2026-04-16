@@ -16,20 +16,15 @@
             :rows="rows"
             :columns="cols"
             :loading="loading"
-            :total-rows="total_rows"
-            :is-server-mode="true"
-            :page="params.current_page"
-            :page-size="params.pagesize"
+            :select-row-on-click="true"
+            :has-checkbox="true"
             :sortable="true"
             :column-filter="true"
-            :has-checkbox="true"
             :search="params.search"
-            :sort-column="params.sort_column"
-            :sort-direction="params.sort_direction"
             :column-filter-lang="filterLang"
-            @search-change="searchChange"
             @change-server="changeServer"
             @sort-change="sortChange"
+            @search-change="searchChange"
             @page-change="changePage"
             @page-size-change="changePageSize"
             @filter-change="filterChange"
@@ -80,11 +75,14 @@ const filterLang: Record<string, string> = {
     less_than_equal: 'Less than or equal',
     is_null: 'Is null',
     is_not_null: 'Not null',
+    all: 'All',
+    true: 'True',
+    false: 'False',
 };
 
 const defaultParams = {
-    current_page: 5,
-    pagesize: 10,
+    current_page: 1,
+    pagesize: 500,
     sort_column: 'id',
     sort_direction: 'desc' as 'asc' | 'desc',
     search: '',
@@ -101,42 +99,42 @@ const changeServer = (data: IServerChangeResponse) => {
 // individual event handlers (logging only — @change handles fetch)
 const sortChange = (data: ISortChangeResponse) => {
     console.log('sortChange:', data);
-    params.sort_column = data.field;
-    params.sort_direction = data.direction;
-    getUsers();
+    // params.sort_column = data.field;
+    // params.sort_direction = data.direction;
+    // getUsers();
 };
 
 const changePage = (page: number) => {
     console.log('pageChange:', page);
-    params.current_page = page;
-    getUsers();
+    // params.current_page = page;
+    // getUsers();
 };
 
 const changePageSize = (size: number) => {
     console.log('pageSizeChange:', size);
-    params.pagesize = size;
-    params.current_page = 1;
-    getUsers();
+    // params.pagesize = size;
+    // params.current_page = 1;
+    // getUsers();
 };
 
 const searchChange = (val: string) => {
     console.log('searchChange:', val);
-    params.search = val;
-    params.current_page = 1;
+    // params.search = val;
+    // params.current_page = 1;
 
-    if (timer) {
-        clearTimeout(timer);
-    }
-    timer = setTimeout(() => {
-        getUsers();
-    }, 300);
+    // if (timer) {
+    //     clearTimeout(timer);
+    // }
+    // timer = setTimeout(() => {
+    //     getUsers();
+    // }, 300);
 };
 
 const filterChange = (columns: IColumnDefinition[]) => {
     console.log('filterChange:', columns);
-    params.column_filters = columns;
-    params.current_page = 1;
-    getUsers();
+    // params.column_filters = columns;
+    // params.current_page = 1;
+    // getUsers();
 };
 
 const rowSelect = (selectedRows: Array<Record<string, unknown>>) => {
@@ -163,12 +161,10 @@ const reset = () => {
 
 const onReset = () => {
     console.log('reset');
-    getUsers();
+    // getUsers();
 };
 
-// debounced fetch
 let controller: AbortController | null = null;
-let timer: ReturnType<typeof setTimeout> | null = null;
 
 const getUsers = async () => {
     if (controller) {

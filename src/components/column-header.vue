@@ -72,9 +72,9 @@
                             @change="onDateFilterChange(col.field!, ($event.target as HTMLInputElement).value)"
                         />
                         <select v-else-if="col.type === 'bool'" :value="col.value ?? ''" class="bh-form-control" @change="onBoolFilterChange(col.field!, ($event.target as HTMLSelectElement).value)">
-                            <option value="">All</option>
-                            <option value="true">True</option>
-                            <option value="false">False</option>
+                            <option value="">{{ lang('all', 'All') }}</option>
+                            <option value="true">{{ lang('true', 'True') }}</option>
+                            <option value="false">{{ lang('false', 'False') }}</option>
                         </select>
 
                         <button v-if="col.type !== 'bool'" type="button" @click.stop="emit('toggleFilterMenu', col.field!)">
@@ -132,6 +132,10 @@ const emit = defineEmits<{
     conditionChange: [field: string, condition: IFilterCondition];
     toggleFilterMenu: [field: string];
 }>();
+
+const lang = (key: string, fallback: string): string => {
+    return props.columnFilterLang?.[key] ?? fallback;
+};
 
 const onSelectAll = (event: Event) => {
     const target = event.target as HTMLInputElement;

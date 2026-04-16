@@ -408,6 +408,9 @@ export interface IDataTableProps {
      *     no_filter: 'Kein Filter',
      *     contain: 'Enthält',
      *     equal: 'Gleich',
+     *     all: 'Alle',
+     *     true: 'Wahr',
+     *     false: 'Falsch',
      *     // ...
      * }
      * ```
@@ -458,6 +461,12 @@ export interface IDataTableProps {
      * @default 'No data available'
      */
     noDataContent?: string;
+
+    /**
+     * Number of skeleton rows rendered while loading.
+     * @default 10
+     */
+    skeletonRowCount?: number;
 
     /**
      * Make the table header sticky so it remains visible when scrolling vertically.

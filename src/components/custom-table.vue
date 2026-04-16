@@ -38,7 +38,7 @@
                                 }"
                             >
                                 <div class="bh-checkbox">
-                                    <input v-model="selected" type="checkbox" :value="getRowKey(item, i)" @click.stop />
+                                    <input type="checkbox" :checked="isRowSelected(i)" @click.stop @change="onRowCheckboxChange(i)" />
                                     <div>
                                         <icon-check class="check" />
                                     </div>
@@ -75,9 +75,9 @@
                     </tr>
 
                     <template v-if="!filterRowCount && currentLoader">
-                        <tr v-for="i in props.pageSize" :key="i" class="bh-h-11 !bh-border-transparent !bh-bg-white">
-                            <td :colspan="normalizedColumns.length + 1" class="!bh-border-transparent !bh-p-0">
-                                <div class="bh-skeleton-box bh-h-8"></div>
+                        <tr v-for="i in props.skeletonRowCount" :key="i" class="bh-h-11">
+                            <td v-for="j in (props.hasCheckbox ? 1 : 0) + normalizedColumns.filter((c) => !c.hide).length" :key="j">
+                                <div class="bh-skeleton-box"></div>
                             </td>
                         </tr>
                     </template>
@@ -232,6 +232,7 @@ const props = withDefaults(defineProps<IDataTableProps>(), {
     showLastPage: true,
     paginationInfo: 'Showing {0} to {1} of {2} entries',
     noDataContent: 'No data available',
+    skeletonRowCount: 10,
     stickyHeader: false,
     height: '500px',
     stickyFirstColumn: false,
@@ -288,7 +289,7 @@ const visibleRows = computed(() => {
     return rows.slice(offset.value - 1, limit.value);
 });
 
-const { selected, selectedAll, getRowKey, selectAll, selectRow, unselectRow, isRowSelected, getSelectedRows, clearSelectedRows, shouldSuppressEmit } = useSelection({
+const { selectedAll, getRowKey, selectAll, clearSelection, selectRow, unselectRow, toggleRow, isRowSelected, getSelectedRows, clearSelectedRows } = useSelection({
     filterItems: visibleRows,
     uniqueKey,
 });
@@ -306,8 +307,7 @@ watch(
 const { handleClick, handleDblClick } = useRowClick(
     (item, index) => {
         if (props.selectRowOnClick) {
-            if (isRowSelected(index)) unselectRow(index);
-            else selectRow(index);
+            toggleRow(index);
             emit('rowSelect', getSelectedRows());
         }
         emit('rowClick', item);
@@ -321,11 +321,11 @@ const { handleClick, handleDblClick } = useRowClick(
 
 let isResetting = false;
 
-// Selection watcher — emit rowSelect only from user interactions
-watch(selected, () => {
-    if (shouldSuppressEmit()) return;
+// Explicit row checkbox handler — fires from user click on row checkbox
+const onRowCheckboxChange = (index: number) => {
+    toggleRow(index);
     emit('rowSelect', getSelectedRows());
-});
+};
 
 // Explicit page change handler — ONLY called by pagination buttons
 // Programmatic resets (filter/search/pagesize) set currentPage.value directly = silent, no event
@@ -333,7 +333,7 @@ const onUserPageChange = (page: number) => {
     const target = Math.max(1, Math.min(page, maxPage.value));
     if (target === currentPage.value) return;
     currentPage.value = target;
-    selectAll(false, true);
+    clearSelection();
     if (props.isServerMode) {
         emitServerChange('page');
     }
@@ -344,14 +344,14 @@ const onUserPageChange = (page: number) => {
 watch(
     () => props.rows,
     () => {
-        selectAll(false, true);
+        clearSelection();
     },
 );
 
 // Page size change
 watch(currentPageSize, () => {
     if (isResetting) return;
-    selectAll(false, true);
+    clearSelection();
     if (props.isServerMode) {
         currentPage.value = 1;
         emitServerChange('pagesize', true);
@@ -370,7 +370,7 @@ const onSelectAll = (checked: boolean) => {
 const onSortChange = (field: string | undefined) => {
     if (!field) return;
     const { field: sortField, direction } = toggleSort(field);
-    selectAll(false, true);
+    clearSelection();
 
     const sortOffset = (currentPage.value - 1) * (currentPageSize.value ?? 0);
     const sortLimit = currentPageSize.value ?? 0;
@@ -392,7 +392,7 @@ const onConditionChange = (field: string, condition: IFilterCondition) => {
 };
 
 const triggerFilterChange = () => {
-    selectAll(false, true);
+    clearSelection();
     if (props.isServerMode) {
         currentPage.value = 1;
         emitServerChange('filter', true);
@@ -412,7 +412,7 @@ watch(
     () => {
         if (isResetting) return;
         currentSearch.value = props.search;
-        selectAll(false, true);
+        clearSelection();
         if (props.isServerMode) {
             currentPage.value = 1;
             emitServerChange('search', true);
@@ -446,7 +446,7 @@ const emitServerChange = (changeType: string, isResetPage = false) => {
 
 const reset = () => {
     isResetting = true;
-    selectAll(false, true);
+    clearSelection();
     resetFilters();
     resetSort();
     currentPageSize.value = initialPageSize;

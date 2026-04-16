@@ -114,7 +114,7 @@
 }
 
 .bh-skeleton-box {
-    @apply bh-relative bh-w-full bh-overflow-hidden bh-bg-gray-100 after:bh-absolute after:bh-inset-0 after:-bh-translate-x-full after:bh-animate-[bhshimmer_2s_infinite] after:bh-bg-[linear-gradient(90deg,rgba(0,0,0,0)_0,rgba(0,0,0,0.025)_20%,rgba(0,0,0,0.05)_50%,rgba(0,0,0,0))] after:bh-content-[''];
+    @apply bh-relative bh-h-5 bh-w-full bh-overflow-hidden bh-bg-gray-100 after:bh-absolute after:bh-inset-0 after:-bh-translate-x-full after:bh-animate-[bhshimmer_2s_infinite] after:bh-bg-[linear-gradient(90deg,rgba(0,0,0,0)_0,rgba(0,0,0,0.025)_20%,rgba(0,0,0,0.05)_50%,rgba(0,0,0,0))] after:bh-content-[''];
 }
 @keyframes bhshimmer {
     100% {
