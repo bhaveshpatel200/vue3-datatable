@@ -81,6 +81,7 @@ export interface INormalizedColumn {
     isUnique?: boolean;
     html?: boolean;
     cellRenderer?: ((row: Record<string, unknown>) => string) | string;
+    filterCallback?: (cellValue: unknown, row: Record<string, unknown>, search: string) => boolean;
 }
 
 /**
@@ -111,6 +112,16 @@ export const applyColumnFilters = (rows: Array<Record<string, unknown>>, columns
             continue;
         }
 
+        // If a per-column filterCallback is provided, use it to filter rows when a filter value exists
+        if (typeof col.filterCallback === 'function' && hasValue) {
+            try {
+                result = result.filter((row) => col.filterCallback!(cellValue(row, col.field), row, String(col.value)) === true);
+            } catch (err) {
+                result = result.filter(() => false);
+            }
+            continue;
+        }
+
         // Lookup type-specific strategy
         const typeFns = strategies[col.type];
         const fn = typeFns?.[col.condition];
@@ -133,11 +144,23 @@ export const applyGlobalSearch = (rows: Array<Record<string, unknown>>, columns:
     const searchableFields = columns.filter((c) => c.search && !c.hide).map((c) => c.field);
 
     return rows.filter((row) =>
-        searchableFields.some((field) =>
-            String(cellValue(row, field) ?? '')
-                .toLowerCase()
-                .includes(searchLower),
-        ),
+        searchableFields.some((field) => {
+            const raw = cellValue(row, field);
+
+            // Prefer a per-column filterCallback when available for this field
+            const col = columns.find((c) => c.field === field);
+            if (col && typeof col.filterCallback === 'function') {
+                try {
+                    return col.filterCallback(raw, row, search) === true;
+                } catch {
+                    return false;
+                }
+            }
+
+            // Default to case-insensitive substring matching
+            const text = String(raw ?? '');
+            return text.toLowerCase().includes(searchLower);
+        }),
     );
 };
 

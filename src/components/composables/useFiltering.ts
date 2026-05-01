@@ -48,6 +48,7 @@ export function useFiltering(options: IUseFilteringOptions) {
                 maxWidth: col.maxWidth,
                 headerClass: col.headerClass,
                 cellClass: col.cellClass,
+                filterCallback: col.filterCallback,
                 isUnique: col.isUnique ?? false,
                 html: col.html ?? false,
                 cellRenderer: col.cellRenderer,

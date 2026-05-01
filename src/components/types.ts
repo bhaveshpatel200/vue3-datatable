@@ -162,6 +162,11 @@ export interface IColumnDefinition {
 
     /** CSS class(es) applied to each `<td>` body cell in this column. */
     cellClass?: string;
+    /**
+     * Optional per-column filter callback used for global search and filters.
+     * Signature: `(cellValue, row, value) => boolean`. Return `true` to match.
+     */
+    filterCallback?: (cellValue: unknown, row: Record<string, unknown>, search: string) => boolean;
 }
 
 // ---------------------------------------------------------------------------
